@@ -39,4 +39,17 @@ return [
         'conversion_label' => env('GOOGLE_ADS_CONVERSION_LABEL'),
     ],
 
+    /*
+     | Tripadvisor Content API (https://www.tripadvisor.com/developers), used by
+     | `php artisan tripadvisor:import-reviews` for the homepage testimonials.
+     | Location ids come from the listing URLs ("-d4868270-" → 4868270).
+     */
+    'tripadvisor' => [
+        'key' => env('TRIPADVISOR_API_KEY'),
+        'location_ids' => [
+            4868270, // Haridwar Rishikesh Tourism Private Day Tours (Haridwar)
+            5982072, // India Easy Trip (Rishikesh)
+        ],
+    ],
+
 ];

@@ -32,15 +32,34 @@ class HomeControllerTest extends TestCase
         $response->assertSee('"value":"TA-01/HDR/53/2016-17"', false);
     }
 
-    public function test_homepage_shows_published_testimonials_only(): void
+    public function test_homepage_shows_only_published_four_and_five_star_tripadvisor_reviews(): void
     {
         Page::factory()->home()->create();
-        Testimonial::factory()->create(['name' => 'Mr. Raghu Acharya']);
-        Testimonial::factory()->create(['name' => 'Hidden Guest', 'is_published' => false]);
+        Testimonial::factory()->tripadvisor(5)->create(['name' => 'Raghu A', 'title' => 'Wonderful Ganga Aarti']);
+        Testimonial::factory()->tripadvisor(4)->create(['name' => 'Meera K']);
+        Testimonial::factory()->tripadvisor(3)->create(['name' => 'Three Star Guest']);
+        Testimonial::factory()->tripadvisor(5)->create(['name' => 'Hidden Guest', 'is_published' => false]);
+        Testimonial::factory()->create(['name' => 'Mr. Legacy Guest', 'source' => 'Guest feedback', 'rating' => 5]);
 
         $response = $this->get('/');
 
-        $response->assertSee('Mr. Raghu Acharya');
+        $response->assertSee('Raghu A');
+        $response->assertSee('Wonderful Ganga Aarti');
+        $response->assertSee('Rated 5 out of 5 on Tripadvisor');
+        $response->assertSee('Meera K');
+        $response->assertDontSee('Three Star Guest');
         $response->assertDontSee('Hidden Guest');
+        $response->assertDontSee('Mr. Legacy Guest');
+    }
+
+    public function test_homepage_hides_the_reviews_section_until_tripadvisor_reviews_are_imported(): void
+    {
+        Page::factory()->home()->create();
+        Testimonial::factory()->create(['name' => 'Mr. Legacy Guest', 'source' => 'Guest feedback']);
+
+        $response = $this->get('/');
+
+        $response->assertOk();
+        $response->assertDontSee('aria-label="Previous review"', false);
     }
 }

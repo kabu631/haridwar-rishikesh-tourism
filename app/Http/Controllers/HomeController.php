@@ -28,7 +28,7 @@ class HomeController extends Controller
             'page' => $page,
             'home' => $page->extra['home'] ?? [],
             'packages' => $packages,
-            'testimonials' => Testimonial::query()->published()->limit(8)->get(),
+            'testimonials' => Testimonial::query()->published()->topRatedOnTripadvisor()->limit(8)->get(),
             'seo' => $seo->forPage($page),
         ]);
     }

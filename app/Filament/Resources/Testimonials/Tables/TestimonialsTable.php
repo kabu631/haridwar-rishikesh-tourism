@@ -19,6 +19,7 @@ class TestimonialsTable
             ->columns([
                 TextColumn::make('name')->searchable()->weight('medium')->description(fn ($record): ?string => $record->location),
                 TextColumn::make('body')->label('Review')->limit(90)->wrap(),
+                TextColumn::make('rating')->formatStateUsing(fn (int $state): string => str_repeat('★', $state))->placeholder('—'),
                 TextColumn::make('source')->placeholder('—'),
                 ToggleColumn::make('is_published')->label('Live'),
             ])

@@ -224,8 +224,8 @@
             </section>
         @endif
 
-        @if ($city === 'haridwar')
-            {{-- Reviews --}}
+        @if ($city === 'haridwar' && $testimonials->isNotEmpty())
+            {{-- Reviews (4 and 5 star Tripadvisor reviews, see tripadvisor:import-reviews) --}}
             <section class="bg-brand-900 py-16 text-white sm:py-20" data-carousel data-carousel-autoplay>
                 <div class="container-x grid gap-10 lg:grid-cols-[320px_1fr] lg:items-center">
                     <div data-reveal>
@@ -244,11 +244,24 @@
                         @foreach ($testimonials as $testimonial)
                             <li class="w-[88%] shrink-0 sm:w-[60%] xl:w-[48%]">
                                 <figure class="flex h-full flex-col rounded-3xl bg-white/[0.06] p-7 ring-1 ring-white/10">
-                                    <x-glyph name="quote" class="size-9 text-saffron-400" />
-                                    <blockquote class="mt-4 flex-1 text-[15px] leading-relaxed text-white/90">“{{ $testimonial->body }}”</blockquote>
+                                    <div class="flex items-center justify-between gap-4">
+                                        <x-glyph name="quote" class="size-9 text-saffron-400" />
+                                        <span class="flex gap-0.5 text-saffron-400" role="img" aria-label="Rated {{ $testimonial->rating }} out of 5 on Tripadvisor">
+                                            @for ($star = 1; $star <= 5; $star++)
+                                                <x-glyph name="star" solid @class(['size-4', 'opacity-25' => $star > $testimonial->rating]) />
+                                            @endfor
+                                        </span>
+                                    </div>
+                                    @if ($testimonial->title)
+                                        <p class="mt-4 font-semibold text-white">{{ $testimonial->title }}</p>
+                                    @endif
+                                    <blockquote @if ($testimonial->url) cite="{{ $testimonial->url }}" @endif class="mt-2 flex-1 text-[15px] leading-relaxed text-white/90"><p class="line-clamp-6">“{{ $testimonial->body }}”</p></blockquote>
+                                    @if ($testimonial->url)
+                                        <a href="{{ $testimonial->url }}" target="_blank" rel="noopener nofollow" class="mt-3 inline-flex items-center gap-1.5 self-start text-sm font-semibold text-saffron-300 transition hover:text-saffron-200">Read on Tripadvisor <x-glyph name="arrow-up-right" class="size-4" /></a>
+                                    @endif
                                     <figcaption class="mt-6 flex items-center gap-3">
-                                        <span class="grid size-11 place-items-center rounded-full bg-white/10 font-display text-lg font-semibold">{{ mb_substr(trim(str_ireplace(['Mr. ', 'Mrs. ', 'Mr ', 'Mrs '], '', $testimonial->name)), 0, 1) }}</span>
-                                        <span><span class="block font-semibold text-white">{{ $testimonial->name }}</span><span class="text-sm text-white/65">{{ $testimonial->location }}</span></span>
+                                        <span class="grid size-11 place-items-center rounded-full bg-white/10 font-display text-lg font-semibold">{{ mb_strtoupper(mb_substr(trim(str_ireplace(['Mr. ', 'Mrs. ', 'Mr ', 'Mrs '], '', $testimonial->name)), 0, 1)) }}</span>
+                                        <span><span class="block font-semibold text-white">{{ $testimonial->name }}</span><span class="text-sm text-white/65">{{ collect([$testimonial->location, $testimonial->reviewed_at?->format('M Y')])->filter()->implode(' · ') }}</span></span>
                                     </figcaption>
                                 </figure>
                             </li>
