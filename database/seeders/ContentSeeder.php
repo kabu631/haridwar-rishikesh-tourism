@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\PageType;
 use App\Models\Author;
 use App\Models\Media;
 use App\Models\MenuItem;
@@ -32,11 +33,40 @@ class ContentSeeder extends Seeder
             $this->menus($snapshot['menus']);
             $this->redirects($snapshot['redirects']);
             $this->testimonials($snapshot['testimonials']);
+            $this->blogIndex();
         });
 
         $this->media();
 
         PageCache::flush();
+    }
+
+    /**
+     * The /blog.html listing page (not part of the legacy site), created with
+     * the same defaults as its migration when missing.
+     */
+    private function blogIndex(): void
+    {
+        $intro = 'News, travel tips and stories about Haridwar, Rishikesh and Uttarakhand from our local Haridwar team.';
+
+        $page = Page::query()->firstOrNew(['path' => 'blog.html'], [
+            'type' => PageType::Hub,
+            'section' => 'blog',
+            'title' => 'Blog',
+            'nav_label' => 'Blog',
+            'meta_title' => 'Haridwar Rishikesh Travel Blog – Tips, News & Stories',
+            'meta_description' => 'Travel tips, festival dates, yatra updates and stories about Haridwar, Rishikesh and Uttarakhand from the local India Easy Trip team.',
+            'excerpt' => $intro,
+            'robots' => 'index,follow',
+            'is_published' => true,
+            'sort_order' => 900,
+            'published_at' => now(),
+        ]);
+
+        if (! $page->exists) {
+            $page->search_text = $page->buildSearchText();
+            $page->saveQuietly();
+        }
     }
 
     /**

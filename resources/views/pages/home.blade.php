@@ -69,9 +69,9 @@
                     @endforeach
                 </div>
 
-                <ul class="scrollbar-none -mx-4 mt-6 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0" aria-label="We arrange">
+                <ul class="mt-6 flex flex-wrap gap-1.5 sm:gap-2" aria-label="We arrange">
                     @foreach ($hero['highlights'] ?? [] as $highlight)
-                        <li class="shrink-0 rounded-full bg-white/10 px-3 py-1.5 text-[13px] font-medium text-white/90 ring-1 ring-white/20">{{ $highlight }}</li>
+                        <li class="rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white/90 ring-1 ring-white/20 sm:px-3 sm:py-1.5 sm:text-[13px]">{{ $highlight }}</li>
                     @endforeach
                 </ul>
 
