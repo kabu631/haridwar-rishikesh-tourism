@@ -1,0 +1,85 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # ------------------------------------------------------------------
+    # Canonical host: http:// and bare domain → https://www. in ONE hop
+    # (covers static files too; Laravel does the same for pages).
+    # Only active on the live domain, so local/staging copies are unaffected.
+    # ------------------------------------------------------------------
+    RewriteCond %{HTTP_HOST} ^haridwarrishikeshtourism\.com$ [NC]
+    RewriteRule ^ https://www.haridwarrishikeshtourism.com%{REQUEST_URI} [L,R=301,NE]
+
+    RewriteCond %{HTTP_HOST} ^www\.haridwarrishikeshtourism\.com$ [NC]
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://www.haridwarrishikeshtourism.com%{REQUEST_URI} [L,R=301,NE]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Handle X-XSRF-Token Header
+    RewriteCond %{HTTP:x-xsrf-token} .
+    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Compression (HTML, CSS, JS, JSON, XML, SVG, fonts)
+# ----------------------------------------------------------------------
+<IfModule mod_brotli.c>
+    AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/xml application/xml application/rss+xml application/javascript text/javascript application/json image/svg+xml application/manifest+json
+</IfModule>
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml application/xml application/rss+xml application/javascript text/javascript application/json image/svg+xml application/manifest+json
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Browser caching
+# ----------------------------------------------------------------------
+<IfModule mod_mime.c>
+    AddType image/avif .avif
+    AddType image/webp .webp
+    AddType font/woff2 .woff2
+    AddType application/manifest+json .webmanifest
+</IfModule>
+
+<IfModule mod_headers.c>
+    # Fingerprinted build assets and generated image variants never change.
+    <If "%{REQUEST_URI} =~ m#^/(build|_optimized)/#">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </If>
+    <ElseIf "%{REQUEST_URI} =~ m#\.(jpe?g|png|gif|webp|avif|svg|ico|woff2?)$#i">
+        Header set Cache-Control "public, max-age=2592000"
+    </ElseIf>
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 30 days"
+    ExpiresByType image/png "access plus 30 days"
+    ExpiresByType image/webp "access plus 30 days"
+    ExpiresByType image/avif "access plus 30 days"
+    ExpiresByType image/x-icon "access plus 30 days"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+</IfModule>
+
+# Never serve dotfiles (.env, .git …)
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
