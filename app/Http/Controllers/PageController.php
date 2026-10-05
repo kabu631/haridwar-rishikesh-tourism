@@ -37,7 +37,31 @@ class PageController extends Controller
             return redirect()->to($page->absoluteUrl(), 301);
         }
 
-        $content = $this->renderer->render($page->body, $page->title);
+        // Cards that sat under a heading on the legacy page are shown under that heading again.
+        $cardGroups = collect($page->cards ?? [])
+            ->filter(fn (array $card): bool => filled($card['group'] ?? null))
+            ->groupBy(fn (array $card): string => $this->headingKey($card['group']));
+        $placedGroups = [];
+
+        $content = $this->renderer->render($page->body, $page->title, function (string $heading, bool $empty) use ($page, $cardGroups, &$placedGroups): ?string {
+            $key = $this->headingKey($heading);
+            $html = '';
+
+            if ($cardGroups->has($key) && ! isset($placedGroups[$key])) {
+                $placedGroups[$key] = true;
+                $html = view('pages.partials.card-grid', ['cards' => $cardGroups[$key], 'class' => 'my-8', 'headingLevel' => 3])->render();
+            } elseif ($empty) {
+                $html = $this->blockForEmptyHeading($page, $key);
+            }
+
+            // Blocks sit between two runs of article typography, not inside it.
+            return $html === '' ? null : '</div>'.$html.'<div class="prose-content mt-10">';
+        });
+
+        $cards = collect($page->cards ?? [])
+            ->reject(fn (array $card): bool => isset($placedGroups[$this->headingKey($card['group'] ?? '')]))
+            ->values();
+
         [$slides, $gallery] = collect($page->gallery ?? [])
             ->filter(fn (array $item): bool => filled($item['image'] ?? null) || filled($item['youtube'] ?? null))
             ->partition(fn (array $item): bool => ! empty($item['slide']) && $this->media->exists($item['image'] ?? null));
@@ -47,6 +71,7 @@ class PageController extends Controller
             'seo' => $this->seo->forPage($page),
             'content' => $content['html'],
             'toc' => count($content['toc']) >= 4 ? $content['toc'] : [],
+            'cards' => $cards,
             'slides' => $slides->values(),
             'gallery' => $gallery->values(),
             'siblings' => $this->siblings($page),
@@ -54,6 +79,25 @@ class PageController extends Controller
             'authors' => $page->path === 'our-team.html' ? Author::query()->orderBy('id')->get() : collect(),
             'posts' => $page->path === self::BLOG_PATH ? $this->blogPosts() : null,
         ]);
+    }
+
+    /**
+     * Legacy headings whose content was a widget the import could not keep (a
+     * dead "Book Now" image, an enquiry form) get working booking buttons, so
+     * no heading is left with nothing under it.
+     */
+    private function blockForEmptyHeading(Page $page, string $heading): string
+    {
+        if ($page->path !== 'book-now.php' && preg_match('/^(book your|book now)\b|\bbook now$|^(enquiry|booking) form$|^send your query|^for more information contact/', $heading)) {
+            return view('pages.partials.section-cta', ['page' => $page])->render();
+        }
+
+        return '';
+    }
+
+    private function headingKey(string $text): string
+    {
+        return mb_strtolower(trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags($text)))));
     }
 
     /**

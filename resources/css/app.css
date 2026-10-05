@@ -220,6 +220,20 @@
             @apply my-10 border-ink-900/10;
         }
 
+        /* A legacy sentence written as a heading (FAQ answer, "Best time is…", "Note: …") */
+        & :is(h2, h3, h4).heading-note {
+            @apply mt-6 rounded-r-xl border-l-4 border-saffron-400 bg-saffron-50/60 px-4 py-3 font-sans text-base leading-relaxed font-medium text-ink-700;
+        }
+
+        /* A heading that titles the sub-sections below it */
+        & :is(h2, h3, h4).heading-group {
+            @apply mt-14 border-t border-ink-900/10 pt-6 font-sans text-sm font-semibold tracking-[0.16em] text-saffron-700 uppercase;
+
+            & + :is(h2, h3, h4) {
+                @apply mt-3;
+            }
+        }
+
         & .content-cta {
             @apply btn-primary no-underline;
         }

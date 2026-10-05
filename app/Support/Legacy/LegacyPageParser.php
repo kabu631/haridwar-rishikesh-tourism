@@ -183,12 +183,31 @@ class LegacyPageParser
                 'alt' => $img instanceof DOMElement ? $this->clean($img->getAttribute('alt')) : null,
                 'text' => $teaser ? $this->text($teaser) : null,
                 'badge' => $badge ? $this->text($badge) : null,
+                'group' => $this->cardGroup($xpath, $story, $root),
             ];
 
             $this->removeColumn($story);
         }
 
         return array_values(array_filter($cards, fn (array $card): bool => $card['title'] !== null || $card['url'] !== null));
+    }
+
+    /**
+     * The content heading a card sits under on the legacy page (e.g. the
+     * "Haridwar Rishikesh Nainital Corbett Holiday Packages" row of cards), so
+     * the new page can show each group of cards beneath its own heading.
+     */
+    private function cardGroup(DOMXPath $xpath, DOMElement $story, DOMElement $root): ?string
+    {
+        $heading = $xpath->query('preceding::*[self::h1 or self::h2 or self::h3][not(ancestor::div[contains(concat(" ", normalize-space(@class), " "), " story ")])][1]', $story)->item(0);
+
+        for ($node = $heading?->parentNode; $node !== null; $node = $node->parentNode) {
+            if ($node->isSameNode($root)) {
+                return $this->text($heading) ?: null;
+            }
+        }
+
+        return null;
     }
 
     /**

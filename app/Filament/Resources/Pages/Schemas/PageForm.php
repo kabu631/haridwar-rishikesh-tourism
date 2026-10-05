@@ -287,7 +287,7 @@ class PageForm
                     ->label('Cards (hub pages)')
                     ->schema([
                         Grid::make(2)->schema([
-                            TextInput::make('title')->required()->maxLength(160),
+                            TextInput::make('title')->maxLength(160)->helperText('Optional for photo-only cards.'),
                             TextInput::make('url')->required()->maxLength(255)->helperText('e.g. /har-ki-pauri.html'),
                         ]),
                         Grid::make(2)->schema([
@@ -295,7 +295,13 @@ class PageForm
                             TextInput::make('alt')->label('Image alt text')->maxLength(255),
                         ]),
                         Textarea::make('text')->rows(2)->maxLength(500),
-                        TextInput::make('badge')->maxLength(30)->helperText('Optional, e.g. 2N/3D'),
+                        Grid::make(2)->schema([
+                            TextInput::make('badge')->maxLength(30)->helperText('Optional, e.g. 2N/3D'),
+                            TextInput::make('group')
+                                ->label('Show under heading')
+                                ->maxLength(200)
+                                ->helperText('Exact text of a heading in the Body. The card then appears at the end of that section; leave empty to show it at the end of the page.'),
+                        ]),
                     ])
                     ->itemLabel(fn (array $state): ?string => $state['title'] ?? null)
                     ->collapsed()

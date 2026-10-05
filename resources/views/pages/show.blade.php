@@ -136,21 +136,9 @@
                 @endif
             @endif
 
-            {{-- Hub page cards (legacy "story" blocks) --}}
-            @if (filled($page->cards))
-                <div class="mt-12 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                    @foreach ($page->cards as $card)
-                        @continue(blank($card['url'] ?? null) && blank($card['title'] ?? null))
-                        <x-page-card
-                            :url="$card['url'] ?? '#'"
-                            :title="$card['title'] ?? 'Read more'"
-                            :text="$card['text'] ?? null"
-                            :image="$card['image'] ?? null"
-                            :alt="isset($card['alt']) ? Str::headline($card['alt']) : null"
-                            :badge="$card['badge'] ?? null"
-                            heading-level="2" />
-                    @endforeach
-                </div>
+            {{-- Hub page cards (legacy "story" blocks) not already shown under their heading --}}
+            @if ($cards->isNotEmpty())
+                @include('pages.partials.card-grid', ['cards' => $cards])
             @endif
 
             {{-- Photo / video gallery --}}

@@ -3,6 +3,7 @@
 namespace App\Support\Content;
 
 use App\Support\Media\MediaLibrary;
+use Closure;
 use DOMComment;
 use DOMElement;
 use DOMNode;
@@ -21,9 +22,14 @@ class ContentRenderer
     public function __construct(private HtmlSanitizer $sanitizer, private MediaLibrary $media) {}
 
     /**
+     * $sectionBlock may return HTML to show at the end of a heading's section
+     * (e.g. the cards that sat under that heading on the legacy site). It
+     * receives the heading text and whether the heading has no content of its own.
+     *
+     * @param  (Closure(string, bool): ?string)|null  $sectionBlock
      * @return array{html: string, toc: list<array{id: string, text: string, level: int}>}
      */
-    public function render(?string $html, string $imageAltFallback = ''): array
+    public function render(?string $html, string $imageAltFallback = '', ?Closure $sectionBlock = null): array
     {
         if (blank($html)) {
             return ['html' => '', 'toc' => []];
@@ -34,6 +40,7 @@ class ContentRenderer
         $xpath = new DOMXPath($document);
 
         $this->normaliseHeadingLevels($xpath, $root);
+        $this->noteHeadings($root);
         $toc = $this->anchorHeadings($xpath, $root);
         $this->timeline($xpath, $root);
         $this->tables($xpath, $root);
@@ -41,11 +48,123 @@ class ContentRenderer
         $this->links($xpath, $root);
         $this->mediaCards($xpath, $root);
 
+        $blocks = $sectionBlock ? $this->sectionBlocks($root, $sectionBlock) : [];
+        $this->groupHeadings($root);
         $placeholders = $this->images($xpath, $root, $imageAltFallback);
 
         $output = $this->sanitizer->innerHtml($root);
 
-        return ['html' => strtr($output, $placeholders), 'toc' => $toc];
+        return ['html' => strtr($output, $placeholders + $blocks), 'toc' => $toc];
+    }
+
+    /**
+     * Legacy pages often wrote a sentence as a heading (an FAQ answer, "Best
+     * time is during July…", "Note: …"). When such a heading has nothing under
+     * it, it is styled as a note instead of a big empty heading. The tag stays.
+     */
+    private function noteHeadings(DOMElement $root): void
+    {
+        foreach ($this->rootHeadings($root) as $heading) {
+            $text = trim(preg_replace('/\s+/u', ' ', $heading->textContent));
+
+            if ($this->isEmptyHeading($heading) && (mb_strlen($text) > 70 || str_ends_with($text, '.') || preg_match('/^(note|including|altitudes?)\b/i', $text))) {
+                $heading->setAttribute('class', trim($heading->getAttribute('class').' heading-note'));
+            }
+        }
+    }
+
+    /**
+     * A heading directly followed by another heading of the same level (e.g.
+     * "Other Packages" before "Haridwar Rishikesh Tour Packages From Delhi")
+     * titles the sections below it; it is styled as a section label.
+     */
+    private function groupHeadings(DOMElement $root): void
+    {
+        foreach ($this->rootHeadings($root) as $heading) {
+            if ($this->sectionEnd($heading) !== null && $this->isEmptyHeading($heading) && ! str_contains($heading->getAttribute('class'), 'heading-note')) {
+                $heading->setAttribute('class', trim($heading->getAttribute('class').' heading-group'));
+            }
+        }
+    }
+
+    /**
+     * @param  Closure(string, bool): ?string  $sectionBlock
+     * @return array<string, string> placeholder => HTML
+     */
+    private function sectionBlocks(DOMElement $root, Closure $sectionBlock): array
+    {
+        $blocks = [];
+
+        foreach ($this->rootHeadings($root) as $heading) {
+            $html = $sectionBlock(trim(preg_replace('/\s+/u', ' ', $heading->textContent)), $this->isEmptyHeading($heading));
+
+            if (blank($html)) {
+                continue;
+            }
+
+            $placeholder = '%%SECTION-BLOCK-'.count($blocks).'%%';
+            $marker = $root->ownerDocument->createTextNode($placeholder);
+            $end = $this->sectionEnd($heading);
+            $end ? $root->insertBefore($marker, $end) : $root->appendChild($marker);
+            $blocks[$placeholder] = $html;
+        }
+
+        return $blocks;
+    }
+
+    /**
+     * @return list<DOMElement>
+     */
+    private function rootHeadings(DOMElement $root): array
+    {
+        $headings = [];
+
+        foreach ($root->childNodes as $node) {
+            if ($node instanceof DOMElement && preg_match('/^h[2-6]$/', $node->nodeName)) {
+                $headings[] = $node;
+            }
+        }
+
+        return $headings;
+    }
+
+    /**
+     * True when the next content after the heading is a heading of the same
+     * or a higher level (or nothing at all).
+     */
+    private function isEmptyHeading(DOMElement $heading): bool
+    {
+        for ($node = $heading->nextSibling; $node !== null; $node = $node->nextSibling) {
+            if ($node instanceof DOMText && trim($node->textContent) === '') {
+                continue;
+            }
+
+            if ($node instanceof DOMComment) {
+                continue;
+            }
+
+            return $node instanceof DOMElement
+                && preg_match('/^h([2-6])$/', $node->nodeName, $next)
+                && (int) $next[1] <= (int) substr($heading->nodeName, 1);
+        }
+
+        return true;
+    }
+
+    /**
+     * The first following heading of the same or a higher level: where this heading's section ends.
+     */
+    private function sectionEnd(DOMElement $heading): ?DOMNode
+    {
+        $level = (int) substr($heading->nodeName, 1);
+
+        for ($node = $heading->nextSibling; $node !== null; $node = $node->nextSibling) {
+            if ($node instanceof DOMElement && preg_match('/^h([2-6])$/', $node->nodeName, $match) && (int) $match[1] <= $level) {
+                return $node;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -93,7 +212,7 @@ class ContentRenderer
             $used[$id] = true;
             $heading->setAttribute('id', $id);
 
-            if (! preg_match('/^Day\s*-?\s*\d/i', $text)) {
+            if (! preg_match('/^Day\s*-?\s*\d/i', $text) && ! str_contains($heading->getAttribute('class'), 'heading-note')) {
                 $toc[] = ['id' => $id, 'text' => $text, 'level' => (int) substr($heading->nodeName, 1)];
             }
         }
