@@ -173,6 +173,23 @@ class Page extends Model
      *
      * @return array{nights: int, days: int}|null
      */
+    /**
+     * The trip facts shown on a tour page, for enquiry emails and the admin inbox.
+     *
+     * @return array<string, string>
+     */
+    public function tripFacts(): array
+    {
+        $duration = $this->duration();
+        $places = (array) ($this->facts['destinations'] ?? []);
+
+        return array_filter([
+            'Duration' => $duration ? "{$duration['nights']} nights / {$duration['days']} days" : null,
+            'Starts from' => $this->facts['start_city'] ?? null,
+            'Places covered' => $places !== [] ? implode(', ', $places) : null,
+        ]);
+    }
+
     public function duration(): ?array
     {
         if (filled($this->facts['duration_days'] ?? null)) {

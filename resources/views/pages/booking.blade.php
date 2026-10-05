@@ -14,8 +14,8 @@
             @csrf
             <input type="hidden" name="type" value="booking">
             <input type="hidden" name="source" value="{{ old('source') }}">
-            @if ($page)
-                <input type="hidden" name="page_id" value="{{ $page->id }}">
+            @if ($tourPage ?? $page)
+                <input type="hidden" name="page_id" value="{{ ($tourPage ?? $page)->id }}">
             @endif
             <div class="absolute -left-[9999px]" aria-hidden="true"><label for="booking-website">Website</label><input id="booking-website" type="text" name="website" tabindex="-1" autocomplete="off"></div>
 
@@ -53,12 +53,23 @@
                 <div class="mt-4 grid gap-4 sm:grid-cols-2">
                     <div class="sm:col-span-2">
                         <label for="booking-tour" class="field-label">Tour / destination</label>
-                        <input id="booking-tour" name="tour" type="text" maxlength="190" list="tour-options" value="{{ old('tour', $tour) }}" placeholder="e.g. Haridwar Rishikesh Tour, Char Dham Yatra" class="field">
-                        <datalist id="tour-options">
-                            @foreach ($tours as $option)
-                                <option value="{{ $option }}"></option>
-                            @endforeach
-                        </datalist>
+                        @if ($tourPage)
+                            {{-- Came from this tour's "Book this tour now" link: the tour is fixed (the server also enforces it via page_id). --}}
+                            <input id="booking-tour" name="tour" type="text" value="{{ $tourPage->title }}" readonly aria-readonly="true" class="field cursor-not-allowed bg-sand-100 font-semibold text-ink-900">
+                            <p class="mt-1.5 text-xs text-ink-500">
+                                Booking request for this tour.
+                                <a href="{{ $tourPage->url() }}" class="font-semibold text-brand-700 underline underline-offset-2">View tour</a>
+                                ·
+                                <a href="/book-now.php" class="font-semibold text-brand-700 underline underline-offset-2">Book a different tour</a>
+                            </p>
+                        @else
+                            <input id="booking-tour" name="tour" type="text" maxlength="190" list="tour-options" value="{{ old('tour', $tour) }}" placeholder="e.g. Haridwar Rishikesh Tour, Char Dham Yatra" class="field">
+                            <datalist id="tour-options">
+                                @foreach ($tours as $option)
+                                    <option value="{{ $option }}"></option>
+                                @endforeach
+                            </datalist>
+                        @endif
                     </div>
                     <div>
                         <label for="booking-travel" class="field-label">Arrival date</label>

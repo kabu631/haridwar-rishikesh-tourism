@@ -58,6 +58,9 @@ class PageController extends Controller
             return $html === '' ? null : '</div>'.$html.'<div class="prose-content mt-10">';
         });
 
+        // "Book this tour now" opens the booking form with this tour filled in and locked.
+        $content['html'] = str_replace('href="/book-now.php"', 'href="'.$this->bookingUrl($page).'"', $content['html']);
+
         $cards = collect($page->cards ?? [])
             ->reject(fn (array $card): bool => isset($placedGroups[$this->headingKey($card['group'] ?? '')]))
             ->values();
@@ -93,6 +96,13 @@ class PageController extends Controller
         }
 
         return '';
+    }
+
+    private function bookingUrl(Page $page): string
+    {
+        return $page->path === 'book-now.php' || $page->type === PageType::Company
+            ? '/book-now.php'
+            : '/book-now.php?'.http_build_query(['tour' => $page->path]);
     }
 
     private function headingKey(string $text): string

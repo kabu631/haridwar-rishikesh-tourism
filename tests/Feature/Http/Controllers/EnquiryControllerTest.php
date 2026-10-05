@@ -120,4 +120,56 @@ class EnquiryControllerTest extends TestCase
 
         $this->postJson('/enquiry', $this->validEnquiry())->assertTooManyRequests();
     }
+
+    public function test_an_enquiry_sent_from_a_tour_page_records_that_tour_whatever_the_form_says(): void
+    {
+        Mail::fake();
+        $page = Page::factory()->package()->create(['path' => 'haridwar-rishikesh-with-golden-triangle-tour.html', 'title' => 'Haridwar Rishikesh with Golden Triangle Tour']);
+
+        $this->postJson('/enquiry', $this->validEnquiry(['type' => 'package', 'page_id' => $page->id, 'tour' => 'Something else']))->assertOk();
+
+        $this->assertDatabaseHas('enquiries', ['page_id' => $page->id, 'tour' => 'Haridwar Rishikesh with Golden Triangle Tour']);
+    }
+
+    public function test_notification_email_includes_the_tour_package_details(): void
+    {
+        $page = Page::factory()->package()->create(['path' => 'haridwar-rishikesh-tour.html']);
+        $enquiry = Enquiry::factory()->create(['page_id' => $page->id, 'tour' => $page->title]);
+
+        $mail = new EnquiryReceived($enquiry);
+
+        $mail->assertSeeInHtml($page->absoluteUrl());
+        $mail->assertSeeInHtml('2 nights / 3 days');
+        $mail->assertSeeInHtml('Haridwar, Rishikesh');
+        $mail->assertSeeInHtml('Delhi');
+    }
+
+    public function test_book_this_tour_now_links_carry_the_tour_and_the_booking_form_locks_it(): void
+    {
+        Page::factory()->create(['path' => 'book-now.php', 'title' => 'Online Booking Form']);
+        $tour = Page::factory()->package()->create([
+            'path' => 'haridwar-rishikesh-with-golden-triangle-tour.html',
+            'title' => 'Haridwar Rishikesh with Golden Triangle Tour',
+            'body' => '<p>Day by day plan.</p><p><a href="/book-now.php">Book this tour now</a></p>',
+        ]);
+
+        $this->get('/haridwar-rishikesh-with-golden-triangle-tour.html')
+            ->assertSee('href="/book-now.php?tour=haridwar-rishikesh-with-golden-triangle-tour.html"', false);
+
+        $this->get('/book-now.php?tour=haridwar-rishikesh-with-golden-triangle-tour.html')
+            ->assertOk()
+            ->assertSee('<input type="hidden" name="page_id" value="'.$tour->id.'">', false)
+            ->assertSee('value="Haridwar Rishikesh with Golden Triangle Tour" readonly', false);
+    }
+
+    public function test_a_general_booking_keeps_the_tour_the_visitor_typed(): void
+    {
+        Mail::fake();
+        $bookingPage = Page::factory()->create(['path' => 'book-now.php', 'title' => 'Online Booking Form']);
+
+        $this->post('/book-now.php', $this->validEnquiry(['type' => 'booking', 'page_id' => $bookingPage->id, 'tour' => 'Char Dham Yatra']));
+
+        $this->assertDatabaseHas('enquiries', ['type' => 'booking', 'tour' => 'Char Dham Yatra']);
+        $this->get('/book-now.php')->assertSee('name="page_id" value="'.$bookingPage->id.'"', false);
+    }
 }

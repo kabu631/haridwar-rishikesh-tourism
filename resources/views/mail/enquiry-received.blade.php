@@ -8,6 +8,12 @@
 |:--|:--|
 | Type | {{ \App\Models\Enquiry::TYPES[$enquiry->type] ?? $enquiry->type }} |
 | Tour | {{ $enquiry->tour ?: '—' }} |
+@if ($enquiry->page)
+| Tour page | [{{ $enquiry->page->absoluteUrl() }}]({{ $enquiry->page->absoluteUrl() }}) |
+@foreach ($enquiry->page->tripFacts() as $label => $value)
+| {{ $label }} | {{ $value }} |
+@endforeach
+@endif
 | Email | {{ $enquiry->email }} |
 | Phone | {{ $enquiry->phone }} |
 | Travel date | {{ $enquiry->travel_date?->format('j M Y') ?? '—' }} |

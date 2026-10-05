@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PageType;
 use App\Http\Requests\StoreEnquiryRequest;
 use App\Mail\EnquiryReceived;
 use App\Models\Enquiry;
+use App\Models\Page;
 use App\Support\Seo\SeoBuilder;
 use App\Support\SiteSettings;
 use Illuminate\Http\JsonResponse;
@@ -27,6 +29,14 @@ class EnquiryController extends Controller
 
         $data = $request->safe()->except(['website', 'source']);
         $message = (string) ($data['message'] ?? '');
+
+        // Sent from a tour's page or its "Book this tour now" link: the tour is that page, whatever the form says.
+        $page = filled($data['page_id'] ?? null) ? Page::query()->published()->find($data['page_id']) : null;
+        $data['page_id'] = $page?->id;
+
+        if ($page && $page->type !== PageType::Company && $page->path !== 'book-now.php') {
+            $data['tour'] = Str::limit($page->title, 190, '');
+        }
 
         $enquiry = Enquiry::query()->create(array_merge($data, [
             'type' => $data['type'] ?? ($request->routeIs('booking.store') ? 'booking' : 'quick'),
