@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers;
 
+use App\Enums\PageType;
 use App\Mail\EnquiryReceived;
 use App\Models\Enquiry;
 use App\Models\Page;
@@ -160,6 +161,15 @@ class EnquiryControllerTest extends TestCase
             ->assertOk()
             ->assertSee('<input type="hidden" name="page_id" value="'.$tour->id.'">', false)
             ->assertSee('value="Haridwar Rishikesh with Golden Triangle Tour" readonly', false);
+    }
+
+    public function test_only_tour_package_pages_can_be_booked_as_a_fixed_tour(): void
+    {
+        Page::factory()->create(['path' => 'book-now.php', 'title' => 'Online Booking Form']);
+        Page::factory()->create(['path' => 'contact-us.html', 'type' => PageType::Company, 'title' => 'Contact Us', 'body' => '<p>Write to us.</p><h2>Enquiry form</h2>']);
+
+        $this->get('/contact-us.html')->assertDontSee('book-now.php?tour=', false);
+        $this->get('/book-now.php?tour=contact-us.html')->assertOk()->assertDontSee('readonly', false)->assertDontSee('value="Contact Us"', false)->assertDontSee('value="contact-us.html"', false);
     }
 
     public function test_a_general_booking_keeps_the_tour_the_visitor_typed(): void

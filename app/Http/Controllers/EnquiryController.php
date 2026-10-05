@@ -30,11 +30,11 @@ class EnquiryController extends Controller
         $data = $request->safe()->except(['website', 'source']);
         $message = (string) ($data['message'] ?? '');
 
-        // Sent from a tour's page or its "Book this tour now" link: the tour is that page, whatever the form says.
+        // Sent from a tour package page or its "Book this tour now" link: the tour is that package, whatever the form says.
         $page = filled($data['page_id'] ?? null) ? Page::query()->published()->find($data['page_id']) : null;
         $data['page_id'] = $page?->id;
 
-        if ($page && $page->type !== PageType::Company && $page->path !== 'book-now.php') {
+        if ($page?->type === PageType::Package) {
             $data['tour'] = Str::limit($page->title, 190, '');
         }
 

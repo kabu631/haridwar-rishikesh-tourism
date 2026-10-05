@@ -9,6 +9,8 @@ export function initForms() {
             source.value = window.location.href;
         }
 
+        linkTravelDates(form);
+
         form.addEventListener('submit', async (event) => {
             if (!window.fetch || !form.checkValidity()) {
                 return;
@@ -59,6 +61,31 @@ export function initForms() {
             }
         });
     });
+}
+
+/**
+ * The departure (return) date can never be before the arrival date: its
+ * calendar starts at the arrival day, and an earlier departure is cleared.
+ */
+function linkTravelDates(form) {
+    const arrival = form.querySelector('input[name="travel_date"]');
+    const departure = form.querySelector('input[name="return_date"]');
+
+    if (!arrival || !departure) {
+        return;
+    }
+
+    const today = departure.min;
+    const sync = () => {
+        departure.min = arrival.value || today;
+        if (departure.value && arrival.value && departure.value < arrival.value) {
+            departure.value = '';
+        }
+    };
+
+    arrival.addEventListener('change', sync);
+    arrival.addEventListener('input', sync);
+    sync();
 }
 
 function showErrors(form, errors) {

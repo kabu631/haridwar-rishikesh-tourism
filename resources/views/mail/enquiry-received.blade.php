@@ -8,7 +8,7 @@
 |:--|:--|
 | Type | {{ \App\Models\Enquiry::TYPES[$enquiry->type] ?? $enquiry->type }} |
 | Tour | {{ $enquiry->tour ?: '—' }} |
-@if ($enquiry->page)
+@if ($enquiry->page?->type === \App\Enums\PageType::Package)
 | Tour page | [{{ $enquiry->page->absoluteUrl() }}]({{ $enquiry->page->absoluteUrl() }}) |
 @foreach ($enquiry->page->tripFacts() as $label => $value)
 | {{ $label }} | {{ $value }} |

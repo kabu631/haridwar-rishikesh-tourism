@@ -239,7 +239,7 @@
                 <x-enquiry-form
                     id="page-enquiry"
                     :type="$isPackage ? 'package' : 'quick'"
-                    :tour="$page->type === PageType::Company ? null : $page->title"
+                    :tour="$isPackage ? $page->title : null"
                     :page-id="$page->id"
                     compact
                     :title="$isPackage ? 'Enquire about this tour' : 'Plan your trip with a local expert'" />

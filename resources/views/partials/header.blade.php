@@ -55,7 +55,8 @@
                             {{ $item->label }} <x-glyph name="chevron-down" class="size-4 opacity-70 transition duration-200 group-hover/nav:rotate-180 group-[.is-open]/nav:rotate-180" />
                         </a>
                         <div class="nav-panel {{ $loop->index < 2 ? '!left-0 !translate-x-0' : ($loop->remaining < 2 ? '!right-0 !left-auto !translate-x-0' : '') }}" data-nav-panel>
-                            <div @class(['rounded-2xl bg-white p-3 shadow-2xl ring-1 ring-ink-900/10', 'w-[680px]' => $wide, 'w-72' => ! $wide])>
+                            {{-- whitespace-normal: long menu labels wrap inside the panel instead of running out of it --}}
+                            <div @class(['rounded-2xl bg-white p-3 whitespace-normal shadow-2xl ring-1 ring-ink-900/10', 'w-[680px]' => $wide, 'w-80' => ! $wide])>
                                 <ul @class(['grid gap-0.5', 'grid-cols-2' => $wide])>
                                     @foreach ($item->children as $child)
                                         <li>

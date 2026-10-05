@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Enquiries\Schemas;
 
+use App\Enums\PageType;
 use App\Models\Enquiry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
@@ -35,9 +36,9 @@ class EnquiryInfolist
                             TextEntry::make('tour')
                                 ->placeholder('—')
                                 ->columnSpan(2)
-                                ->url(fn (Enquiry $record): ?string => $record->page?->absoluteUrl())
+                                ->url(fn (Enquiry $record): ?string => $record->page?->type === PageType::Package ? $record->page->absoluteUrl() : null)
                                 ->openUrlInNewTab()
-                                ->helperText(fn (Enquiry $record): ?string => $record->page
+                                ->helperText(fn (Enquiry $record): ?string => $record->page?->type === PageType::Package
                                     ? collect($record->page->tripFacts())->map(fn (string $value, string $label): string => "{$label}: {$value}")->implode(' · ') ?: null
                                     : null),
                             TextEntry::make('travel_date')->date('j M Y')->placeholder('—'),

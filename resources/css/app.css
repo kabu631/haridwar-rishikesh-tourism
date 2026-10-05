@@ -504,7 +504,7 @@
     }
 
     .mega-link {
-        @apply flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[14px] text-ink-700 transition hover:bg-sand-100 hover:text-brand-700;
+        @apply flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[14px] leading-snug break-words text-ink-700 transition hover:bg-sand-100 hover:text-brand-700;
 
         &::before {
             content: '';

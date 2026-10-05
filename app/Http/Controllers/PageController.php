@@ -100,9 +100,9 @@ class PageController extends Controller
 
     private function bookingUrl(Page $page): string
     {
-        return $page->path === 'book-now.php' || $page->type === PageType::Company
-            ? '/book-now.php'
-            : '/book-now.php?'.http_build_query(['tour' => $page->path]);
+        return $page->type === PageType::Package
+            ? '/book-now.php?'.http_build_query(['tour' => $page->path])
+            : '/book-now.php';
     }
 
     private function headingKey(string $text): string
