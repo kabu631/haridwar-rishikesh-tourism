@@ -93,8 +93,18 @@
 @layer base {
     html {
         scroll-behavior: smooth;
-        scroll-padding-top: 7rem;
         -webkit-tap-highlight-color: transparent;
+    }
+
+    /*
+     * Keep in-page link targets (table of contents, #enquire…) clear of the
+     * sticky header. Set on the targets, not as html scroll-padding: that
+     * would make the browser scroll the page on every key typed into the
+     * header search, which lives inside the sticky header.
+     */
+    :where(h1, h2, h3, h4, h5, h6, section, article)[id],
+    :target {
+        scroll-margin-top: 9rem;
     }
 
     body {
