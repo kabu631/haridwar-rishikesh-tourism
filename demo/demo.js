@@ -153,8 +153,29 @@
         column.prepend(wrapper);
     }
 
+    // /book-now.html?tour=<page>.html: the tour is filled in and locked (the live site does this on the server).
+    async function bookingTour() {
+        const tour = new URLSearchParams(window.location.search).get('tour');
+        const input = document.querySelector('#booking-tour');
+
+        if (!tour || !input) {
+            return;
+        }
+
+        const page = (await loadIndex()).find((entry) => entry.url.endsWith(`/${tour}`));
+        if (!page) {
+            return;
+        }
+
+        input.value = page.title;
+        input.readOnly = true;
+        input.removeAttribute('list');
+        input.classList.add('cursor-not-allowed', 'bg-sand-100', 'font-semibold', 'text-ink-900');
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         previewBar();
         searchPage();
+        bookingTour();
     });
 })();
