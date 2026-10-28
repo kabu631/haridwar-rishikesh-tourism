@@ -35,21 +35,21 @@ class EnquiryPolicy
 
     public function delete(User $user, Enquiry $enquiry): bool
     {
-        return $user->hasPermission(Permission::ManageEnquiries);
+        return $user->hasPermission(Permission::DeleteEnquiries);
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->hasPermission(Permission::ManageEnquiries);
+        return $user->hasPermission(Permission::DeleteEnquiries);
     }
 
     public function restore(User $user, Enquiry $enquiry): bool
     {
-        return $user->hasPermission(Permission::ManageEnquiries);
+        return $user->hasPermission(Permission::DeleteEnquiries);
     }
 
     public function forceDelete(User $user, Enquiry $enquiry): bool
     {
-        return $user->hasPermission(Permission::ManageEnquiries);
+        return $user->hasPermission(Permission::DeleteEnquiries);
     }
 }

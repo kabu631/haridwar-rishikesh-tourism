@@ -3,12 +3,14 @@
 namespace Tests\Feature\Filament;
 
 use App\Enums\UserRole;
+use App\Filament\Resources\Enquiries\Pages\EditEnquiry;
 use App\Filament\Resources\Pages\Pages\CreatePage;
 use App\Filament\Resources\Pages\Pages\EditPage;
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Widgets\LatestEnquiries;
 use App\Models\Author;
+use App\Models\Enquiry;
 use App\Models\Page;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,18 +39,40 @@ class RoleAccessTest extends TestCase
         $this->assertSame('Chandi Devi Temple Haridwar', $page->fresh()->title);
     }
 
-    public function test_staff_cannot_open_anything_besides_pages(): void
+    public function test_staff_cannot_open_anything_besides_pages_and_enquiries(): void
     {
         $this->actingAs(User::factory()->staff()->create());
 
-        foreach (['/hrtsiteadmin/enquiries', '/hrtsiteadmin/redirects', '/hrtsiteadmin/menu-items', '/hrtsiteadmin/testimonials', '/hrtsiteadmin/authors', '/hrtsiteadmin/settings', '/hrtsiteadmin/users'] as $screen) {
+        foreach (['/hrtsiteadmin/redirects', '/hrtsiteadmin/menu-items', '/hrtsiteadmin/testimonials', '/hrtsiteadmin/authors', '/hrtsiteadmin/settings', '/hrtsiteadmin/users'] as $screen) {
             $this->get($screen)->assertForbidden();
         }
-
-        $this->assertFalse(LatestEnquiries::canView());
     }
 
-    public function test_editors_delete_pages_and_manage_site_content_but_not_enquiries_settings_or_users(): void
+    public function test_staff_and_editors_handle_enquiries_but_only_admins_delete_them(): void
+    {
+        $enquiry = Enquiry::factory()->create();
+
+        foreach ([User::factory()->staff()->create(), User::factory()->editor()->create()] as $user) {
+            $this->actingAs($user);
+            $this->assertTrue(LatestEnquiries::canView());
+            $this->get('/hrtsiteadmin/enquiries/'.$enquiry->id)->assertOk();
+
+            Livewire::test(EditEnquiry::class, ['record' => $enquiry->getRouteKey()])
+                ->assertActionHidden('delete')
+                ->fillForm(['status' => 'contacted', 'notes' => 'Called back, sending a quote.'])
+                ->call('save')
+                ->assertHasNoFormErrors();
+
+            $this->assertSame('contacted', $enquiry->fresh()->status);
+        }
+
+        $this->actingAs(User::factory()->admin()->create());
+        Livewire::test(EditEnquiry::class, ['record' => $enquiry->getRouteKey()])->callAction('delete');
+
+        $this->assertModelMissing($enquiry);
+    }
+
+    public function test_editors_delete_pages_and_manage_site_content_but_not_settings_or_users(): void
     {
         $page = Page::factory()->create();
         $this->actingAs(User::factory()->editor()->create());
@@ -57,7 +81,7 @@ class RoleAccessTest extends TestCase
             $this->get($screen)->assertOk();
         }
 
-        foreach (['/hrtsiteadmin/enquiries', '/hrtsiteadmin/settings', '/hrtsiteadmin/users'] as $screen) {
+        foreach (['/hrtsiteadmin/settings', '/hrtsiteadmin/users'] as $screen) {
             $this->get($screen)->assertForbidden();
         }
 

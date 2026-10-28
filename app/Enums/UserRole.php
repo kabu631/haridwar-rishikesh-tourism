@@ -26,9 +26,9 @@ enum UserRole: string
     public function description(): string
     {
         return match ($this) {
-            self::Admin => 'Full access, including enquiries, site settings and user accounts.',
-            self::Editor => 'Adds, edits and deletes pages; manages menus, testimonials, authors and redirects.',
-            self::Staff => 'Adds and edits pages. Cannot delete pages or change anything else.',
+            self::Admin => 'Full access, including deleting enquiries, site settings and user accounts.',
+            self::Editor => 'Handles enquiries; adds, edits and deletes pages; manages menus, testimonials, authors and redirects.',
+            self::Staff => 'Handles enquiries; adds and edits pages. Cannot delete anything or change other settings.',
         };
     }
 
@@ -48,8 +48,8 @@ enum UserRole: string
     {
         return match ($this) {
             self::Admin => Permission::cases(),
-            self::Editor => [Permission::EditPages, Permission::DeletePages, Permission::ManageSiteContent, Permission::ManageRedirects],
-            self::Staff => [Permission::EditPages],
+            self::Editor => [Permission::EditPages, Permission::DeletePages, Permission::ManageSiteContent, Permission::ManageRedirects, Permission::ManageEnquiries],
+            self::Staff => [Permission::EditPages, Permission::ManageEnquiries],
         };
     }
 

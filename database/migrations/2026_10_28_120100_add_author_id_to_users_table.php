@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('author_id')->nullable()->unique()->after('role')->constrained()->nullOnDelete();
+            // Removing a team member also removes their admin login.
+            $table->foreignId('author_id')->nullable()->unique()->after('role')->constrained()->cascadeOnDelete();
         });
     }
 

@@ -35,7 +35,7 @@ class AuthorPolicy
 
     public function delete(User $user, Author $author): bool
     {
-        return $user->hasPermission(Permission::ManageSiteContent);
+        return $user->hasPermission(Permission::ManageSiteContent) && $this->canRemoveLoginOf($user, $author);
     }
 
     public function deleteAny(User $user): bool
@@ -50,6 +50,17 @@ class AuthorPolicy
 
     public function forceDelete(User $user, Author $author): bool
     {
-        return $user->hasPermission(Permission::ManageSiteContent);
+        return $user->hasPermission(Permission::ManageSiteContent) && $this->canRemoveLoginOf($user, $author);
+    }
+
+    /**
+     * Deleting a team member also deletes their admin login: only admins may
+     * do that, and never to their own account.
+     */
+    private function canRemoveLoginOf(User $user, Author $author): bool
+    {
+        $login = $author->user;
+
+        return $login === null || ($user->hasPermission(Permission::ManageUsers) && $user->isNot($login));
     }
 }
