@@ -37,15 +37,17 @@
                         {{ $page->title }}
                     @endif
                 </h1>
-                <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/80">
-                    @if ($page->author)
-                        <span class="flex items-center gap-1.5"><x-glyph name="user" class="size-4" /> By <a href="/our-team.html" class="font-medium text-white hover:underline">{{ $page->author->name }}</a></span>
-                    @endif
-                    @if ($updated)
-                        <span class="flex items-center gap-1.5"><x-glyph name="calendar" class="size-4" /> Updated <time datetime="{{ $updated->toDateString() }}">{{ $updated->format('j M Y') }}</time></span>
-                    @endif
-                    <span class="flex items-center gap-1.5"><x-glyph name="clock" class="size-4" /> {{ $page->readingMinutes() }} min read</span>
-                </div>
+                @if ($page->showsByline())
+                    <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/80">
+                        @if ($page->author)
+                            <span class="flex items-center gap-1.5"><x-glyph name="user" class="size-4" /> By <a href="/our-team.html" class="font-medium text-white hover:underline">{{ $page->author->name }}</a></span>
+                        @endif
+                        @if ($updated)
+                            <span class="flex items-center gap-1.5"><x-glyph name="calendar" class="size-4" /> Updated <time datetime="{{ $updated->toDateString() }}">{{ $updated->format('j M Y') }}</time></span>
+                        @endif
+                        <span class="flex items-center gap-1.5"><x-glyph name="clock" class="size-4" /> {{ $page->readingMinutes() }} min read</span>
+                    </div>
+                @endif
                 @if ($isPackage)
                     <div class="mt-7 flex flex-wrap gap-3">
                         <a href="#enquire" class="btn-primary">Enquire about this tour</a>
@@ -126,7 +128,7 @@
                                 :url="$post->url()"
                                 :title="$post->title"
                                 :text="$post->excerpt ?: $post->meta_description"
-                                :image="$post->hero_image"
+                                :image="$post->thumbnail()"
                                 :alt="$post->hero_alt"
                                 :meta="collect([$post->published_at?->format('j M Y'), $post->author?->name])->filter()->implode(' · ')"
                                 :eager="$loop->first"
@@ -189,7 +191,7 @@
             @endif
 
             {{-- Author & editorial info (E-E-A-T) --}}
-            @if ($page->author && $page->type !== PageType::Company)
+            @if ($page->author && $page->showsByline())
                 <aside class="mt-14 flex flex-col gap-5 rounded-3xl bg-white p-6 ring-1 ring-ink-900/5 sm:flex-row sm:p-7" aria-label="About the author">
                     <span class="grid size-16 shrink-0 place-items-center rounded-2xl bg-brand-600 font-display text-2xl font-semibold text-white">{{ Str::of($page->author->name)->explode(' ')->map(fn ($part) => mb_substr($part, 0, 1))->implode('') }}</span>
                     <div>
@@ -302,7 +304,7 @@
                             :url="$item->url()"
                             :title="$item->title"
                             :text="$item->teaser(150)"
-                            :image="$item->extra['thumbnail'] ?? $item->hero_image"
+                            :image="$item->thumbnail()"
                             :alt="isset($item->extra['thumbnail_alt']) ? Str::headline($item->extra['thumbnail_alt']) : $item->title"
                             :badge="$itemDuration ? $itemDuration['nights'].'N / '.$itemDuration['days'].'D' : null"
                             :meta="$item->type?->badge()" />

@@ -230,4 +230,25 @@ class Page extends Model
     {
         return max(1, (int) ceil(str_word_count(strip_tags((string) $this->body)) / 200));
     }
+
+    /**
+     * Image for this page's card in listings: the chosen thumbnail, else the
+     * header image, else the first photo of its gallery (photo pages often
+     * have no header image).
+     */
+    public function thumbnail(): ?string
+    {
+        return ($this->extra['thumbnail'] ?? null)
+            ?: $this->hero_image
+            ?: collect($this->gallery ?? [])->pluck('image')->first(fn (?string $image): bool => filled($image));
+    }
+
+    /**
+     * Whether the page shows who wrote it, when it was updated and its reading
+     * time. Only tour packages and blog posts do; regular pages stay clean.
+     */
+    public function showsByline(): bool
+    {
+        return in_array($this->type, [PageType::Package, PageType::Blog], true);
+    }
 }

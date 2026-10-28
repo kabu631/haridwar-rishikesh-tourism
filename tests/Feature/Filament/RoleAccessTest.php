@@ -4,6 +4,7 @@ namespace Tests\Feature\Filament;
 
 use App\Enums\UserRole;
 use App\Filament\Resources\Enquiries\Pages\EditEnquiry;
+use App\Filament\Resources\Enquiries\Pages\ListEnquiries;
 use App\Filament\Resources\Pages\Pages\CreatePage;
 use App\Filament\Resources\Pages\Pages\EditPage;
 use App\Filament\Resources\Users\Pages\CreateUser;
@@ -13,6 +14,7 @@ use App\Models\Author;
 use App\Models\Enquiry;
 use App\Models\Page;
 use App\Models\User;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
@@ -70,6 +72,29 @@ class RoleAccessTest extends TestCase
         Livewire::test(EditEnquiry::class, ['record' => $enquiry->getRouteKey()])->callAction('delete');
 
         $this->assertModelMissing($enquiry);
+    }
+
+    public function test_only_admins_can_export_every_enquiry(): void
+    {
+        Enquiry::factory()->create();
+
+        foreach ([User::factory()->staff()->create(), User::factory()->editor()->create()] as $user) {
+            $this->actingAs($user);
+            Livewire::test(ListEnquiries::class)->assertActionHidden(TestAction::make('export')->table());
+        }
+
+        $this->actingAs(User::factory()->admin()->create());
+        Livewire::test(ListEnquiries::class)->assertActionVisible(TestAction::make('export')->table());
+    }
+
+    public function test_an_author_profile_created_while_adding_a_user_gets_a_slug_from_its_name(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test(CreateUser::class)
+            ->mountAction(TestAction::make('createOption')->schemaComponent('author_id', 'form'))
+            ->set('mountedActions.0.data.name', 'Ravi Kumar')
+            ->assertSet('mountedActions.0.data.slug', 'ravi-kumar');
     }
 
     public function test_editors_delete_pages_and_manage_site_content_but_not_settings_or_users(): void

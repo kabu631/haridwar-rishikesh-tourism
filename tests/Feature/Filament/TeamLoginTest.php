@@ -7,6 +7,7 @@ use App\Filament\Resources\Authors\Pages\CreateAuthor;
 use App\Filament\Resources\Authors\Pages\EditAuthor;
 use App\Models\Author;
 use App\Models\User;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
@@ -55,6 +56,26 @@ class TeamLoginTest extends TestCase
         $login = Author::query()->where('slug', 'sunny-dhiman')->firstOrFail()->user;
         $this->assertSame('sunny@example.com', $login->email);
         $this->assertSame(UserRole::Staff, $login->role);
+    }
+
+    public function test_a_new_login_can_use_a_generated_password_and_defaults_to_staff(): void
+    {
+        $author = Author::factory()->create();
+        $this->actingAs(User::factory()->admin()->create());
+
+        $form = Livewire::test(EditAuthor::class, ['record' => $author->getRouteKey()])
+            ->fillForm(['has_login' => true])
+            ->set('data.user.email', 'new.member@example.com')
+            ->callAction(TestAction::make('generatePassword')->schemaComponent('user.password', 'form'));
+
+        $password = $form->get('data.user.password');
+        $this->assertSame(12, strlen((string) $password));
+
+        $form->call('save')->assertHasNoFormErrors();
+
+        $login = $author->fresh()->user;
+        $this->assertSame(UserRole::Staff, $login->role);
+        $this->assertTrue(Hash::check($password, $login->password));
     }
 
     public function test_a_new_login_needs_a_password_and_an_unused_email(): void

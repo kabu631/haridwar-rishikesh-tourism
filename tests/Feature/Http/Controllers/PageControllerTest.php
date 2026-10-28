@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers;
 
+use App\Enums\PageType;
 use App\Models\Author;
 use App\Models\Page;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -27,6 +28,54 @@ class PageControllerTest extends TestCase
         $response->assertSee('<link rel="canonical" href="https://www.haridwarrishikeshtourism.com/har-ki-pauri.html">', false);
         $response->assertSee('<link rel="alternate" hreflang="x-default" href="https://www.haridwarrishikeshtourism.com/har-ki-pauri.html">', false);
         $response->assertSee('index,follow,max-image-preview:large', false);
+    }
+
+    public function test_tour_packages_and_blog_posts_show_the_author_update_date_and_reading_time(): void
+    {
+        $author = Author::factory()->create(['name' => 'Sunil Saini']);
+        Page::factory()->package()->create(['path' => 'haridwar-tour-package.html', 'author_id' => $author->id]);
+        Page::factory()->create(['path' => 'ganga-dussehra-2026.html', 'type' => PageType::Blog, 'author_id' => $author->id]);
+
+        foreach (['/haridwar-tour-package.html', '/ganga-dussehra-2026.html'] as $url) {
+            $this->get($url)
+                ->assertOk()
+                ->assertSee('Sunil Saini')
+                ->assertSee('min read')
+                ->assertSee('About the author', false)
+                ->assertSee('"@type":"Person"', false);
+        }
+    }
+
+    public function test_regular_pages_do_not_show_an_author_update_date_or_reading_time(): void
+    {
+        $author = Author::factory()->create(['name' => 'Sunil Saini']);
+        Page::factory()->create(['path' => 'our-team.html', 'type' => PageType::Company, 'author_id' => $author->id]);
+        Page::factory()->create(['path' => 'kankhal.html', 'type' => PageType::Guide, 'author_id' => $author->id]);
+
+        foreach (['/our-team.html', '/kankhal.html'] as $url) {
+            $this->get($url)
+                ->assertOk()
+                ->assertDontSee('min read')
+                ->assertDontSee('About the author', false)
+                ->assertDontSee('"@type":"Article"', false);
+        }
+    }
+
+    public function test_photo_pages_without_a_header_image_show_their_first_photo_on_cards(): void
+    {
+        $hub = Page::factory()->hub()->create(['path' => 'haridwar-tourism.html']);
+        Page::factory()->create(['path' => 'kankhal.html', 'parent_id' => $hub->id]);
+        $photos = Page::factory()->create([
+            'path' => 'haridwar-photos.html',
+            'type' => PageType::Gallery,
+            'parent_id' => $hub->id,
+            'hero_image' => null,
+            'extra' => [],
+            'gallery' => [['image' => null, 'alt' => 'Empty'], ['image' => '/haridwar-photos/1.jpg', 'alt' => 'Har Ki Pauri']],
+        ]);
+
+        $this->assertSame('/haridwar-photos/1.jpg', $photos->thumbnail());
+        $this->get('/kankhal.html')->assertOk()->assertSee('haridwar-photos/1', false);
     }
 
     public function test_page_with_a_legacy_cross_canonical_keeps_it_and_drops_hreflang(): void
@@ -75,12 +124,12 @@ class PageControllerTest extends TestCase
         $response->assertSee('"item":"https://www.haridwarrishikeshtourism.com/haridwar-tourism.html"', false);
     }
 
-    public function test_author_byline_and_last_updated_date_are_shown(): void
+    public function test_package_byline_shows_the_author_and_last_updated_date(): void
     {
         $author = Author::factory()->create(['name' => 'Sunil Saini']);
-        Page::factory()->create(['path' => 'kankhal.html', 'author_id' => $author->id, 'updated_at' => '2020-04-23 05:34:03']);
+        Page::factory()->package()->create(['path' => 'kankhal-tour.html', 'author_id' => $author->id, 'updated_at' => '2020-04-23 05:34:03']);
 
-        $response = $this->get('/kankhal.html');
+        $response = $this->get('/kankhal-tour.html');
 
         $response->assertSee('Sunil Saini');
         $response->assertSee('Updated <time datetime="2020-04-23">23 Apr 2020</time>', false);

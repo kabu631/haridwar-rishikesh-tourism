@@ -13,6 +13,7 @@ enum Permission: string
     case ManageRedirects = 'manage_redirects';
     case ManageEnquiries = 'manage_enquiries';
     case DeleteEnquiries = 'delete_enquiries';
+    case ExportEnquiries = 'export_enquiries';
     case ManageSettings = 'manage_settings';
     case ManageUsers = 'manage_users';
 }

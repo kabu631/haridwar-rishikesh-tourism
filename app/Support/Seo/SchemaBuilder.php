@@ -195,8 +195,8 @@ class SchemaBuilder
             'primaryImageOfPage' => $image ? ['@id' => $url.'#primaryimage'] : null,
             'datePublished' => $page->published_at?->toIso8601String(),
             'dateModified' => $page->updated_at?->toIso8601String(),
-            'lastReviewed' => $page->reviewed_at?->toDateString(),
-            'reviewedBy' => $page->reviewer ? ['@id' => $this->siteUrl('/our-team.html').'#'.$page->reviewer->slug] : null,
+            'lastReviewed' => $page->showsByline() ? $page->reviewed_at?->toDateString() : null,
+            'reviewedBy' => $page->showsByline() && $page->reviewer ? ['@id' => $this->siteUrl('/our-team.html').'#'.$page->reviewer->slug] : null,
         ]);
 
         if ($image) {
@@ -222,16 +222,17 @@ class SchemaBuilder
 
         $graph[] = $webPage;
 
-        if (! $page->isHome() && ! in_array($page->type, [PageType::Hub, PageType::Gallery, PageType::Company], true)) {
+        // Authorship is only marked up where the page shows it (packages and blog posts).
+        if ($page->showsByline()) {
             $graph[] = $this->article($page, $url, $image);
-        }
 
-        if ($page->author) {
-            $graph[] = $this->person($page->author);
-        }
+            if ($page->author) {
+                $graph[] = $this->person($page->author);
+            }
 
-        if ($page->reviewer && $page->reviewer->isNot($page->author)) {
-            $graph[] = $this->person($page->reviewer);
+            if ($page->reviewer && $page->reviewer->isNot($page->author)) {
+                $graph[] = $this->person($page->reviewer);
+            }
         }
 
         if (filled($page->faqs)) {

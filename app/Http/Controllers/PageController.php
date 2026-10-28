@@ -157,7 +157,7 @@ class PageController extends Controller
             return collect();
         }
 
-        $columns = ['id', 'path', 'title', 'nav_label', 'type', 'section', 'excerpt', 'meta_description', 'hero_image', 'hero_alt', 'extra', 'facts', 'itinerary'];
+        $columns = ['id', 'path', 'title', 'nav_label', 'type', 'section', 'excerpt', 'meta_description', 'hero_image', 'hero_alt', 'gallery', 'extra', 'facts', 'itinerary'];
         $linkedFromCards = collect($page->cards ?? [])->pluck('url')->map(fn (?string $url): string => ltrim((string) $url, '/'))->all();
 
         $related = Page::query()

@@ -14,7 +14,7 @@
                 <h2 class="text-center font-display text-2xl font-semibold text-ink-900">{{ filled($searchTerms ?? '') ? 'Were you looking for…' : 'Popular guides' }}</h2>
                 <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($suggestions as $item)
-                        <x-page-card :url="$item->url()" :title="$item->title" :text="$item->teaser(120)" :image="$item->extra['thumbnail'] ?? $item->hero_image" :meta="$item->type?->badge()" />
+                        <x-page-card :url="$item->url()" :title="$item->title" :text="$item->teaser(120)" :image="$item->thumbnail()" :meta="$item->type?->badge()" />
                     @endforeach
                 </div>
             </div>

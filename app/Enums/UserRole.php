@@ -26,7 +26,7 @@ enum UserRole: string
     public function description(): string
     {
         return match ($this) {
-            self::Admin => 'Full access, including deleting enquiries, site settings and user accounts.',
+            self::Admin => 'Full access, including deleting and exporting enquiries, site settings and user accounts.',
             self::Editor => 'Handles enquiries; adds, edits and deletes pages; manages menus, testimonials, authors and redirects.',
             self::Staff => 'Handles enquiries; adds and edits pages. Cannot delete anything or change other settings.',
         };

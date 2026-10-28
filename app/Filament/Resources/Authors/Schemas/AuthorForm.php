@@ -42,7 +42,8 @@ class AuthorForm
                     ->required()
                     ->maxLength(120)
                     ->live(onBlur: true)
-                    ->afterStateUpdated(fn (Set $set, ?string $state, string $operation) => $operation === 'create' ? $set('slug', Str::slug((string) $state)) : null),
+                    // "createOption": the "new author" modal of the Users & roles form.
+                    ->afterStateUpdated(fn (Set $set, ?string $state, string $operation) => in_array($operation, ['create', 'createOption'], true) ? $set('slug', Str::slug((string) $state)) : null),
                 TextInput::make('slug')->required()->unique(ignoreRecord: true)->maxLength(120)->helperText('Anchor on the Our Team page.'),
                 TextInput::make('job_title')->maxLength(160),
             ]),

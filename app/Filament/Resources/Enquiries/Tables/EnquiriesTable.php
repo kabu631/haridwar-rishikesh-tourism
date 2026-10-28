@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Enquiries\Tables;
 
+use App\Enums\Permission;
 use App\Models\Enquiry;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -44,6 +45,8 @@ class EnquiriesTable
                     ->label('Export CSV')
                     ->icon(Heroicon::OutlinedArrowDownTray)
                     ->color('gray')
+                    // Every customer's contact details in one file: admins only.
+                    ->visible(fn (): bool => auth()->user()?->hasPermission(Permission::ExportEnquiries) ?? false)
                     ->action(fn (): StreamedResponse => self::exportCsv()),
             ])
             ->recordActions([

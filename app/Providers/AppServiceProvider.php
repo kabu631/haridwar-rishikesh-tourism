@@ -42,6 +42,9 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('search', fn (Request $request): Limit => Limit::perMinute(90)->by($request->ip()));
 
+        // Deploys run `php artisan optimize`: cached pages built from old templates are retired too.
+        $this->optimizes(optimize: 'page-cache:clear', clear: 'page-cache:clear', key: 'page-cache');
+
         // Root-relative asset URLs ("/build/…") so fully cached HTML works on any
         // host or port. A CDN can still be used by setting ASSET_URL.
         if (blank(config('app.asset_url'))) {

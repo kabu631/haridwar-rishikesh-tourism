@@ -53,7 +53,7 @@
                         <li>
                             <article class="group relative flex gap-4 rounded-2xl bg-white p-4 ring-1 ring-ink-900/5 transition hover:shadow-card sm:gap-6 sm:p-5">
                                 <div class="hidden w-40 shrink-0 overflow-hidden rounded-xl bg-sand-200 sm:block">
-                                    <x-picture :src="$result->extra['thumbnail'] ?? $result->hero_image" :alt="$result->title" sizes="160px" class="aspect-[4/3] size-full object-cover" />
+                                    <x-picture :src="$result->thumbnail()" :alt="$result->title" sizes="160px" class="aspect-[4/3] size-full object-cover" />
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <p class="flex flex-wrap items-center gap-2 text-xs">
