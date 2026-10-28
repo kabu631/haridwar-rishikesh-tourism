@@ -16,7 +16,7 @@ class SettingsTest extends TestCase
     public function test_saved_phone_number_replaces_the_default_on_the_website(): void
     {
         Page::factory()->create(['path' => 'kankhal.html']);
-        $this->actingAs(User::factory()->create(['is_admin' => true]));
+        $this->actingAs(User::factory()->admin()->create());
 
         Livewire::test(Settings::class)
             ->fillForm(['phone' => '+91-9000000000'])

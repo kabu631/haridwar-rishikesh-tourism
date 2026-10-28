@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -26,7 +27,7 @@ class CreateAdminUser extends Command
 
         $user = User::query()->updateOrCreate(
             ['email' => $email],
-            ['name' => $this->option('name'), 'password' => $password, 'is_admin' => true],
+            ['name' => $this->option('name'), 'password' => $password, 'role' => UserRole::Admin],
         );
 
         $this->info("Admin user ready: {$user->email}");

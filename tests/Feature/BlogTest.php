@@ -33,9 +33,9 @@ class BlogTest extends TestCase
 
     public function test_admin_can_open_the_blog_section_and_add_a_post(): void
     {
-        $this->actingAs(User::factory()->create(['is_admin' => true]));
+        $this->actingAs(User::factory()->admin()->create());
 
-        $this->get('/admin/pages?tab=blog')->assertOk()->assertSee('Add blog post');
-        $this->get('/admin/pages/create?type=blog')->assertOk();
+        $this->get('/hrtsiteadmin/pages?tab=blog')->assertOk()->assertSee('Add blog post');
+        $this->get('/hrtsiteadmin/pages/create?type=blog')->assertOk();
     }
 }

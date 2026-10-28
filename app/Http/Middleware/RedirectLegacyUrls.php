@@ -31,7 +31,7 @@ class RedirectLegacyUrls
             return $this->redirect($request, rtrim($path, '/'), 301);
         }
 
-        if (str_starts_with($path, '/admin') || str_starts_with($path, '/livewire') || str_starts_with($path, '/build/') || str_starts_with($path, '/_optimized/')) {
+        if (str_starts_with($path, '/'.config('admin.path')) || str_starts_with($path, '/livewire') || str_starts_with($path, '/build/') || str_starts_with($path, '/_optimized/')) {
             return $next($request);
         }
 

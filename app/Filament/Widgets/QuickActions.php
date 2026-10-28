@@ -33,17 +33,17 @@ class QuickActions extends Widget
         return [
             'name' => auth()->user()?->name,
             'actions' => array_values(array_filter([
-                [
+                EnquiryResource::canViewAny() ? [
                     'label' => 'Enquiries',
                     'icon' => Heroicon::OutlinedInboxArrowDown,
                     'url' => EnquiryResource::getUrl('index'),
                     'badge' => Enquiry::query()->where('status', 'new')->count() ?: null,
                     'primary' => true,
-                ],
+                ] : null,
                 ['label' => 'Add tour package', 'icon' => Heroicon::OutlinedPlus, 'url' => PageResource::getUrl('create', ['type' => PageType::Package->value])],
                 ['label' => 'Add page', 'icon' => Heroicon::OutlinedDocumentPlus, 'url' => PageResource::getUrl('create')],
                 $homepage ? ['label' => 'Edit homepage', 'icon' => Heroicon::OutlinedHome, 'url' => PageResource::getUrl('edit', ['record' => $homepage])] : null,
-                ['label' => 'Site settings', 'icon' => Heroicon::OutlinedCog6Tooth, 'url' => Settings::getUrl()],
+                Settings::canAccess() ? ['label' => 'Site settings', 'icon' => Heroicon::OutlinedCog6Tooth, 'url' => Settings::getUrl()] : null,
                 ['label' => 'View website', 'icon' => Heroicon::OutlinedArrowTopRightOnSquare, 'url' => url('/'), 'external' => true],
             ])),
         ];

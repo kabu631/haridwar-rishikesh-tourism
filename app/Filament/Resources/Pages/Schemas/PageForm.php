@@ -338,7 +338,7 @@ class PageForm
             ->schema([
                 Html::make(new HtmlString('<p class="text-sm text-gray-500">Experience, expertise, authoritativeness and trust (E-E-A-T): show who wrote the page, when it was last checked, and which sources back up facts such as timings, distances and fees.</p>')),
                 Grid::make(3)->schema([
-                    Select::make('author_id')->relationship('author', 'name')->preload()->native(false),
+                    Select::make('author_id')->relationship('author', 'name')->default(fn (): ?int => auth()->user()?->author_id)->preload()->native(false),
                     Select::make('reviewer_id')->label('Reviewed by')->relationship('reviewer', 'name')->preload()->native(false),
                     DateTimePicker::make('reviewed_at')->label('Last reviewed')->native(false)->maxDate(now()),
                 ]),

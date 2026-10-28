@@ -17,7 +17,7 @@ class EnquiryResourceTest extends TestCase
     {
         $lead = Enquiry::factory()->create();
         $spam = Enquiry::factory()->spam()->create();
-        $this->actingAs(User::factory()->create(['is_admin' => true]));
+        $this->actingAs(User::factory()->admin()->create());
 
         Livewire::test(ListEnquiries::class)
             ->assertCanSeeTableRecords([$lead])
@@ -27,7 +27,7 @@ class EnquiryResourceTest extends TestCase
     public function test_marking_enquiries_as_contacted_updates_their_status(): void
     {
         $lead = Enquiry::factory()->create();
-        $this->actingAs(User::factory()->create(['is_admin' => true]));
+        $this->actingAs(User::factory()->admin()->create());
 
         Livewire::test(ListEnquiries::class)->callTableBulkAction('markContacted', [$lead]);
 

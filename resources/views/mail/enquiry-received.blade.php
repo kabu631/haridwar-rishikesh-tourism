@@ -28,7 +28,7 @@
 {{ $enquiry->message }}
 @endif
 
-<x-mail::button :url="url('/admin/enquiries/'.$enquiry->id)">
+<x-mail::button :url="route('filament.admin.resources.enquiries.view', $enquiry)">
 Open in admin panel
 </x-mail::button>
 

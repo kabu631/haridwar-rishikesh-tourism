@@ -20,19 +20,10 @@ class SiteStats extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        $trend = collect(range(13, 0))
-            ->map(fn (int $daysAgo): int => Enquiry::query()->where('status', '!=', 'spam')->whereDate('created_at', now()->subDays($daysAgo))->count())
-            ->all();
-
         $needsReview = Page::query()->published()->where(fn ($query) => $query->whereNull('reviewed_at')->orWhere('reviewed_at', '<', now()->subYear()))->count();
 
-        return [
-            Stat::make('New enquiries', Enquiry::query()->where('status', 'new')->count())
-                ->description(Enquiry::query()->where('status', '!=', 'spam')->where('created_at', '>=', now()->subDays(7))->count().' received in the last 7 days')
-                ->descriptionIcon(Heroicon::OutlinedInboxArrowDown)
-                ->chart($trend)
-                ->color('primary')
-                ->url(EnquiryResource::getUrl('index')),
+        return array_values(array_filter([
+            EnquiryResource::canViewAny() ? $this->enquiriesStat() : null,
             Stat::make('Tour packages', Page::query()->published()->where('type', PageType::Package)->count())
                 ->description('Live on the website')
                 ->descriptionIcon(Heroicon::OutlinedMap)
@@ -46,6 +37,20 @@ class SiteStats extends StatsOverviewWidget
                 ->descriptionIcon(Heroicon::OutlinedExclamationTriangle)
                 ->color($needsReview > 0 ? 'warning' : 'success')
                 ->url(PageResource::getUrl('index', ['filters' => ['stale' => ['isActive' => true]]])),
-        ];
+        ]));
+    }
+
+    private function enquiriesStat(): Stat
+    {
+        $trend = collect(range(13, 0))
+            ->map(fn (int $daysAgo): int => Enquiry::query()->where('status', '!=', 'spam')->whereDate('created_at', now()->subDays($daysAgo))->count())
+            ->all();
+
+        return Stat::make('New enquiries', Enquiry::query()->where('status', 'new')->count())
+            ->description(Enquiry::query()->where('status', '!=', 'spam')->where('created_at', '>=', now()->subDays(7))->count().' received in the last 7 days')
+            ->descriptionIcon(Heroicon::OutlinedInboxArrowDown)
+            ->chart($trend)
+            ->color('primary')
+            ->url(EnquiryResource::getUrl('index'));
     }
 }

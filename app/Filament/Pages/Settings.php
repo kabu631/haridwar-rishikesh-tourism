@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\Permission;
 use App\Models\Setting;
 use App\Support\PageCache;
 use App\Support\SiteSettings;
@@ -59,6 +60,11 @@ class Settings extends Page
      * @var array<string, mixed>|null
      */
     public ?array $data = [];
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasPermission(Permission::ManageSettings) ?? false;
+    }
 
     public function mount(SiteSettings $settings): void
     {

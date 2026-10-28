@@ -17,17 +17,28 @@ class PageResourceTest extends TestCase
 
     private function admin(): User
     {
-        return User::factory()->create(['is_admin' => true]);
+        return User::factory()->admin()->create();
     }
 
     public function test_visitors_must_sign_in_to_reach_the_admin_panel(): void
     {
-        $this->get('/admin/pages')->assertRedirect('/admin/login');
+        $this->get('/hrtsiteadmin/pages')->assertRedirect('/hrtsiteadmin/login');
     }
 
-    public function test_users_who_are_not_admins_are_forbidden(): void
+    public function test_the_admin_panel_is_not_at_the_guessable_admin_url(): void
     {
-        $this->actingAs(User::factory()->create(['is_admin' => false]))->get('/admin')->assertForbidden();
+        $this->get('/admin')->assertNotFound();
+        $this->get('/admin/login')->assertNotFound();
+    }
+
+    public function test_the_admin_login_page_is_kept_out_of_search_engines(): void
+    {
+        $this->get('/hrtsiteadmin/login')->assertOk()->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+    }
+
+    public function test_users_without_a_role_are_forbidden(): void
+    {
+        $this->actingAs(User::factory()->create())->get('/hrtsiteadmin')->assertForbidden();
     }
 
     public function test_admin_sees_the_pages_list(): void

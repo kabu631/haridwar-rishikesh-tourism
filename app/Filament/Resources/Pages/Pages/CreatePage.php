@@ -36,7 +36,7 @@ class CreatePage extends CreateRecord
     {
         $data = $this->preparePageData($data, null);
         $data['published_at'] ??= now();
-        $data['author_id'] ??= Author::query()->value('id');
+        $data['author_id'] ??= auth()->user()?->author_id ?? Author::query()->value('id');
 
         return $data;
     }

@@ -129,6 +129,7 @@
                                 :image="$post->hero_image"
                                 :alt="$post->hero_alt"
                                 :meta="collect([$post->published_at?->format('j M Y'), $post->author?->name])->filter()->implode(' · ')"
+                                :eager="$loop->first"
                                 heading-level="2" />
                         @endforeach
                     </div>

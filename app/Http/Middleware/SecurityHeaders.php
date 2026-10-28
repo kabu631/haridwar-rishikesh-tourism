@@ -7,8 +7,8 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Baseline security headers, HSTS on HTTPS, and a site-wide X-Robots-Tag
- * "noindex" on non-production copies of the site (staging, local).
+ * Baseline security headers, HSTS on HTTPS, and an X-Robots-Tag "noindex"
+ * on the admin panel and on non-production copies of the site (staging, local).
  */
 class SecurityHeaders
 {
@@ -28,7 +28,7 @@ class SecurityHeaders
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
 
-        if (! config('seo.allow_indexing')) {
+        if (! config('seo.allow_indexing') || $request->is(config('admin.path'), config('admin.path').'/*')) {
             $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
         }
 

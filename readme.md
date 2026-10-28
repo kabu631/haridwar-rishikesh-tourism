@@ -9,7 +9,7 @@ The rebuild keeps every legacy URL exactly as Google indexed it (including the `
 ## Features
 
 - **Public website**: tour packages, destinations, blog and static pages, all served from the database at their original `*.html` URLs.
-- **Admin panel** (`/admin`, Filament): manage pages, menu items, authors, testimonials, redirects, enquiries and site settings. The dashboard has widgets for site statistics, SEO health and the latest enquiries.
+- **Admin panel** (`/hrtsiteadmin` by default, set with `ADMIN_PATH`; Filament): manage pages, menu items, authors, testimonials, redirects, enquiries and site settings. The dashboard has widgets for site statistics, SEO health and the latest enquiries.
 - **Bookings & enquiries**: `/book-now.php` and `/enquiry` forms with rate limiting, email notifications and a thank-you page.
 - **Search & chatbot**: site search with autosuggest, and a package-recommendation chatbot endpoint.
 - **SEO tooling**:
@@ -81,7 +81,7 @@ php artisan serve
 ```
 
 - Website: http://localhost:8000
-- Admin panel: http://localhost:8000/admin
+- Admin panel: http://localhost:8000/hrtsiteadmin
 
 ## Artisan Commands
 
@@ -101,6 +101,7 @@ Key `.env` settings (see `.env.example` for the full list):
 | Variable | Purpose |
 |----------|---------|
 | `DB_*` | Database connection (default: `hrt_tourism`, user `root`, no password) |
+| `ADMIN_PATH` | URL segment of the admin panel (default `hrtsiteadmin`) |
 | `SEO_SITE_URL` | Canonical live domain |
 | `SEO_ALLOW_INDEXING` | Override indexing. By default it is on only when `APP_ENV=production` |
 | `SEO_FORCE_CANONICAL_HOST` | One-hop http→https and bare-domain→www redirects |
@@ -114,20 +115,39 @@ Key `.env` settings (see `.env.example` for the full list):
 
 ### Production checklist
 
+**Server:** PHP 8.3+ with the extensions listed above (`intl` is required by the admin panel) and OPcache enabled. Point the web root at `public/`. The web server user needs write access to `storage/`, `bootstrap/cache/` and `public/` (images uploaded in the admin are saved under `public/`).
+
 ```env
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://www.haridwarrishikeshtourism.com
+ADMIN_PATH=<a private segment of your own>
+LOG_STACK=daily
+LOG_LEVEL=warning
+SESSION_SECURE_COOKIE=true
+MAIL_MAILER=smtp              # plus MAIL_HOST, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD
+MAIL_FROM_ADDRESS="mail@haridwarrishikeshtourism.com"
+SITE_OPENING_HOURS="Mo-Su 09:00-20:00"   # your real hours; used in LocalBusiness structured data
 ```
 
 Then run:
 
 ```bash
 composer install --no-dev --optimize-autoloader
-npm ci && npm run build
-php artisan migrate --force
+npm ci && npm run build       # or build locally and upload public/build/
+php artisan migrate --force   # first deploy: php artisan migrate --seed --force
 php artisan optimize
+php artisan filament:optimize
+php artisan app:create-admin you@example.com --name="Your Name"
 ```
+
+Add the scheduler to cron (weekly Tripadvisor import):
+
+```cron
+* * * * * cd /path/to/site && php artisan schedule:run >> /dev/null 2>&1
+```
+
+After every deploy, run `php artisan optimize` and `php artisan filament:optimize` again. Check speed with [PageSpeed Insights](https://pagespeed.web.dev/) once the site is live.
 
 ## Project Structure
 

@@ -14,6 +14,7 @@ class AuthorsTable
             ->columns([
                 TextColumn::make('name')->searchable()->weight('medium'),
                 TextColumn::make('job_title'),
+                TextColumn::make('user.email')->label('Admin login')->placeholder('—'),
                 TextColumn::make('pages_count')->counts('pages')->label('Pages'),
             ])
             ->recordActions([

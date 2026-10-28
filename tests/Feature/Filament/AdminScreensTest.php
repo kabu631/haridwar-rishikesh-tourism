@@ -23,32 +23,34 @@ class AdminScreensTest extends TestCase
     {
         $this->seed(ContentSeeder::class);
         $enquiry = Enquiry::factory()->create();
-        $this->actingAs(User::factory()->create(['is_admin' => true]));
+        $this->actingAs(User::factory()->admin()->create());
 
         $screens = [
-            '/admin',
-            '/admin/pages',
-            '/admin/pages?tab=packages',
-            '/admin/pages?tab=places',
-            '/admin/pages?tab=guides',
-            '/admin/pages?tab=sections',
-            '/admin/pages?tab=company',
-            '/admin/pages/create',
-            '/admin/pages/create?type=company',
-            '/admin/pages/'.Page::query()->where('path', '')->value('id').'/edit',
-            '/admin/pages/'.Page::query()->where('type', 'package')->value('id').'/edit',
-            '/admin/pages/'.Page::query()->where('type', 'hub')->value('id').'/edit',
-            '/admin/pages/'.Page::query()->where('path', 'contact-us.html')->value('id').'/edit',
-            '/admin/enquiries',
-            '/admin/enquiries/'.$enquiry->id,
-            '/admin/redirects',
-            '/admin/redirects/'.Redirect::query()->value('id').'/edit',
-            '/admin/menu-items',
-            '/admin/menu-items?tab=footer',
-            '/admin/menu-items/create?menu=footer',
-            '/admin/authors',
-            '/admin/testimonials',
-            '/admin/settings',
+            '/hrtsiteadmin',
+            '/hrtsiteadmin/pages',
+            '/hrtsiteadmin/pages?tab=packages',
+            '/hrtsiteadmin/pages?tab=places',
+            '/hrtsiteadmin/pages?tab=guides',
+            '/hrtsiteadmin/pages?tab=sections',
+            '/hrtsiteadmin/pages?tab=company',
+            '/hrtsiteadmin/pages/create',
+            '/hrtsiteadmin/pages/create?type=company',
+            '/hrtsiteadmin/pages/'.Page::query()->where('path', '')->value('id').'/edit',
+            '/hrtsiteadmin/pages/'.Page::query()->where('type', 'package')->value('id').'/edit',
+            '/hrtsiteadmin/pages/'.Page::query()->where('type', 'hub')->value('id').'/edit',
+            '/hrtsiteadmin/pages/'.Page::query()->where('path', 'contact-us.html')->value('id').'/edit',
+            '/hrtsiteadmin/enquiries',
+            '/hrtsiteadmin/enquiries/'.$enquiry->id,
+            '/hrtsiteadmin/redirects',
+            '/hrtsiteadmin/redirects/'.Redirect::query()->value('id').'/edit',
+            '/hrtsiteadmin/menu-items',
+            '/hrtsiteadmin/menu-items?tab=footer',
+            '/hrtsiteadmin/menu-items/create?menu=footer',
+            '/hrtsiteadmin/authors',
+            '/hrtsiteadmin/testimonials',
+            '/hrtsiteadmin/settings',
+            '/hrtsiteadmin/users',
+            '/hrtsiteadmin/users/create',
         ];
 
         foreach ($screens as $screen) {

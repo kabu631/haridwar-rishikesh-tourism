@@ -86,9 +86,10 @@ return [
     ],
 
     /*
-     | Paths kept out of search engines.
+     | Paths kept out of search engines. The admin panel is deliberately not
+     | listed (robots.txt is public); it sends an X-Robots-Tag header instead.
      */
-    'disallow' => ['/backup/', '/admin', '/search', '/chatbot/', '/enquiry', '/thank-you'],
+    'disallow' => ['/backup/', '/search', '/chatbot/', '/enquiry', '/thank-you'],
 
     /*
      | IndexNow (Bing, Yandex, Seznam, Naver…): when a page is saved in the

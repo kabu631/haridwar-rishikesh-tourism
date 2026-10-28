@@ -42,7 +42,7 @@ class SeoEndpointsTest extends TestCase
         $response->assertSee('User-agent: *');
         $response->assertSee('User-agent: GPTBot');
         $response->assertSee('Disallow: /backup/');
-        $response->assertSee('Disallow: /admin');
+        $response->assertDontSee('hrtsiteadmin');
         $response->assertSee('Sitemap: https://www.haridwarrishikeshtourism.com/sitemap.xml');
     }
 

@@ -15,6 +15,11 @@ class LatestEnquiries extends TableWidget
 
     protected int|string|array $columnSpan = ['md' => 2, 'xl' => 2];
 
+    public static function canView(): bool
+    {
+        return EnquiryResource::canViewAny();
+    }
+
     public function table(Table $table): Table
     {
         return $table

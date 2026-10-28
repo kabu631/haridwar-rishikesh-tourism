@@ -19,7 +19,7 @@
         <a href="/" class="shrink-0" aria-label="{{ $site->get('name') }} – home">
             <picture>
                 <source type="image/webp" srcset="/images/india-easy-trip-logo-h104.webp">
-                <img src="/images/india-easy-trip-logo-h104.png" width="173" height="48" alt="{{ $site->get('name') }} by India Easy Trip" class="h-10 w-auto lg:h-12" fetchpriority="high">
+                <img src="/images/india-easy-trip-logo-h104.png" width="173" height="48" alt="{{ $site->get('name') }} by India Easy Trip" class="h-10 w-auto lg:h-12">
             </picture>
         </a>
 

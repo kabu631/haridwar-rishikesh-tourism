@@ -25,19 +25,19 @@ class AdminNavigationTest extends TestCase
     {
         parent::setUp();
 
-        $this->actingAs(User::factory()->create(['is_admin' => true]));
+        $this->actingAs(User::factory()->admin()->create());
     }
 
     public function test_sidebar_groups_the_admin_by_category(): void
     {
         Page::factory()->home()->create();
 
-        $this->get('/admin')->assertOk()->assertSeeInOrder([
+        $this->get('/hrtsiteadmin')->assertOk()->assertSeeInOrder([
             'Enquiries',
             'Website pages', 'Homepage', 'Tour packages', 'Destinations &amp; places', 'Travel guides', 'Section pages', 'Company &amp; legal', 'All pages',
             'Site content', 'Header menu', 'Footer links', 'Testimonials', 'Team &amp; authors',
             'SEO', 'Redirects (301)', 'SEO issues', 'XML sitemap',
-            'Settings', 'Site settings',
+            'Settings', 'Site settings', 'Users &amp; roles',
         ], false);
     }
 
@@ -46,7 +46,7 @@ class AdminNavigationTest extends TestCase
         Enquiry::factory()->create(['name' => 'Ramesh Kumar']);
         Page::factory()->package()->create();
 
-        $this->get('/admin')->assertOk()->assertSee('Add tour package');
+        $this->get('/hrtsiteadmin')->assertOk()->assertSee('Add tour package');
 
         Livewire::test(LatestEnquiries::class)->assertSee('Ramesh Kumar');
         Livewire::test(ContentOverview::class)->assertSee('Website content')->assertSeeInOrder(['Tour packages', '1']);
