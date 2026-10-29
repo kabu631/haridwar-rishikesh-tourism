@@ -19,6 +19,8 @@ use Illuminate\Support\Str;
  */
 class ContentRenderer
 {
+    private const ENQUIRY_FORM_URL = '/contact-us.html';
+
     public function __construct(private HtmlSanitizer $sanitizer, private MediaLibrary $media) {}
 
     /**
@@ -44,6 +46,7 @@ class ContentRenderer
         $toc = $this->anchorHeadings($xpath, $root);
         $this->timeline($xpath, $root);
         $this->tables($xpath, $root);
+        $this->enquiryCells($xpath, $root);
         $this->embeds($xpath, $root);
         $this->links($xpath, $root);
         $this->mediaCards($xpath, $root);
@@ -260,6 +263,38 @@ class ContentRenderer
             $wrapper->setAttribute('aria-label', 'Scrollable table');
             $table->parentNode->replaceChild($wrapper, $table);
             $wrapper->appendChild($table);
+        }
+    }
+
+    /**
+     * Package tables end each row with a "Book Now" cell (plain text on the
+     * legacy site). It becomes an "Enquire Now" button that opens the contact
+     * form with that row's package (its first cell) filled in.
+     */
+    private function enquiryCells(DOMXPath $xpath, DOMElement $root): void
+    {
+        foreach (iterator_to_array($xpath->query('.//tr/td', $root)) as $cell) {
+            if (! preg_match('/^(book|enquire|enquiry)( now)?$/i', trim(preg_replace('/\s+/u', ' ', $cell->textContent)))) {
+                continue;
+            }
+
+            $firstCell = $xpath->query('./td|./th', $cell->parentNode)->item(0);
+            $tour = $firstCell !== $cell ? trim(preg_replace('/\s+/u', ' ', $firstCell->textContent)) : '';
+
+            $link = $cell->ownerDocument->createElement('a', 'Enquire Now');
+            $link->setAttribute('href', self::ENQUIRY_FORM_URL.($tour !== '' ? '?'.http_build_query(['tour' => mb_substr($tour, 0, 190)]) : '').'#contact-form');
+            $link->setAttribute('class', 'table-cta');
+            $link->setAttribute('rel', 'nofollow');
+
+            if ($tour !== '') {
+                $link->setAttribute('aria-label', 'Enquire Now about '.$tour);
+            }
+
+            while ($cell->firstChild !== null) {
+                $cell->removeChild($cell->firstChild);
+            }
+
+            $cell->appendChild($link);
         }
     }
 

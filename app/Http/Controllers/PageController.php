@@ -9,6 +9,7 @@ use App\Support\Content\ContentRenderer;
 use App\Support\Media\MediaLibrary;
 use App\Support\Seo\SeoBuilder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -22,7 +23,7 @@ class PageController extends Controller
     /**
      * Any legacy "*.html" URL, served at exactly the same address.
      */
-    public function show(string $path): View|RedirectResponse
+    public function show(Request $request, string $path): View|RedirectResponse
     {
         $page = Page::query()
             ->published()
@@ -81,7 +82,20 @@ class PageController extends Controller
             'related' => $page->path === self::BLOG_PATH ? collect() : $this->related($page),
             'authors' => $page->path === 'our-team.html' ? Author::query()->orderBy('id')->get() : collect(),
             'posts' => $page->path === self::BLOG_PATH ? $this->blogPosts() : null,
+            'enquiryTour' => $this->enquiryTour($request),
         ]);
+    }
+
+    /**
+     * The package an "Enquire Now" table button sent the visitor to the
+     * contact form about (/contact-us.html?tour=…). A query string skips the
+     * page cache, so the form is filled in on the server.
+     */
+    private function enquiryTour(Request $request): string
+    {
+        $tour = $request->query('tour');
+
+        return is_string($tour) ? mb_substr(trim(preg_replace('/\s+/u', ' ', $tour)), 0, 190) : '';
     }
 
     /**

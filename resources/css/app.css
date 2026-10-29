@@ -248,6 +248,11 @@
             @apply btn-primary no-underline;
         }
 
+        /* "Enquire Now" at the end of a package table row */
+        & .table-cta {
+            @apply btn-primary whitespace-nowrap no-underline hover:text-white;
+        }
+
         & .itinerary-step {
             @apply relative mt-0 border-l-2 border-dashed border-saffron-300 pb-6 pl-8;
 

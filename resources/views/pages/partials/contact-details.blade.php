@@ -11,5 +11,13 @@
         </address>
         <a href="https://www.google.com/maps/search/?api=1&query={{ rawurlencode($site->get('legal_name').', '.$site->addressLine()) }}" target="_blank" rel="noopener" class="btn-ghost w-full"><x-glyph name="map" class="size-4" /> Get directions</a>
     </div>
-    <x-enquiry-form id="contact-form" type="contact" title="Send us a message" subtitle="We reply by email or WhatsApp." />
+    {{-- "Enquire Now" buttons in package tables link here with the package filled in --}}
+    <x-enquiry-form
+        id="contact-form"
+        :type="filled($enquiryTour) ? 'package' : 'contact'"
+        :tour="$enquiryTour"
+        :tour-field="filled($enquiryTour)"
+        :title="filled($enquiryTour) ? 'Enquire about this package' : 'Send us a message'"
+        subtitle="We reply by email or WhatsApp."
+        class="scroll-mt-36" />
 </section>

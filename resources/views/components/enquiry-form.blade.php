@@ -7,8 +7,9 @@
     'compact' => false,
     'dark' => false,
     'id' => 'enquiry',
+    'tourField' => false,
 ])
-<form action="{{ route('enquiry.store', [], false) }}" method="post" data-enquiry="{{ $type }}" novalidate
+<form id="{{ $id }}" action="{{ route('enquiry.store', [], false) }}" method="post" data-enquiry="{{ $type }}" novalidate
     {{ $attributes->merge(['class' => $dark ? 'rounded-3xl bg-ink-900/70 p-6 text-white ring-1 ring-white/15 backdrop-blur-md sm:p-7' : 'rounded-3xl bg-white p-6 ring-1 ring-ink-900/5 shadow-card sm:p-7']) }}>
     <p @class(['font-display text-xl font-semibold', 'text-white' => $dark, 'text-ink-900' => ! $dark])>{{ $title }}</p>
     @if ($subtitle)
@@ -17,7 +18,7 @@
 
     <input type="hidden" name="type" value="{{ $type }}">
     <input type="hidden" name="source" value="">
-    @if ($tour)
+    @if ($tour && ! $tourField)
         <input type="hidden" name="tour" value="{{ $tour }}">
     @endif
     @if ($pageId)
@@ -30,6 +31,12 @@
     </div>
 
     <div class="mt-5 grid gap-3 {{ $compact ? '' : 'sm:grid-cols-2' }}">
+        @if ($tourField)
+            <div class="{{ $compact ? '' : 'sm:col-span-2' }}">
+                <label for="{{ $id }}-tour" @class(['field-label', '!text-white/80' => $dark])>Tour / package</label>
+                <input id="{{ $id }}-tour" name="tour" type="text" maxlength="190" value="{{ $tour }}" class="field font-semibold">
+            </div>
+        @endif
         <div class="{{ $compact ? '' : 'sm:col-span-2' }}">
             <label for="{{ $id }}-name" class="sr-only">Your name</label>
             <input id="{{ $id }}-name" name="name" type="text" required minlength="2" maxlength="120" autocomplete="name" placeholder="Your name" class="field">

@@ -177,6 +177,39 @@ class PageControllerTest extends TestCase
         $this->assertStringContainsString('<p>An ordinary paragraph after a photo stays as it is.</p>', $html);
     }
 
+    public function test_book_now_cells_in_package_tables_become_enquire_now_links_with_the_package(): void
+    {
+        Page::factory()->package()->create([
+            'path' => 'chardham-yatra-tour-packages.html',
+            'body' => '<table><tr><th>Chardham Packages</th><th>Nights</th><th></th></tr>'
+                .'<tr><td>Chardham Yatra From Delhi</td><td>10 Nights</td><td>Book Now</td></tr>'
+                .'<tr><td><a href="/valley-of-flowers.html">Chardham with Valley of Flowers</a></td><td>11 Nights</td><td><a href="/book-now.php">Book now</a></td></tr></table>',
+        ]);
+
+        $this->get('/chardham-yatra-tour-packages.html')
+            ->assertOk()
+            ->assertDontSee('<td>Book Now</td>', false)
+            ->assertSee('<a href="/contact-us.html?tour=Chardham+Yatra+From+Delhi#contact-form" class="table-cta" rel="nofollow" aria-label="Enquire Now about Chardham Yatra From Delhi">Enquire Now</a>', false)
+            ->assertSee('href="/contact-us.html?tour=Chardham+with+Valley+of+Flowers#contact-form"', false);
+    }
+
+    public function test_contact_form_is_filled_in_with_the_package_from_an_enquire_now_link(): void
+    {
+        Page::factory()->create(['path' => 'contact-us.html', 'type' => PageType::Company, 'title' => 'Contact Us']);
+
+        $this->get('/contact-us.html?tour=Chardham+Yatra+From+Delhi')
+            ->assertOk()
+            ->assertSee('<form id="contact-form"', false)
+            ->assertSee('Enquire about this package')
+            ->assertSee('name="tour" type="text" maxlength="190" value="Chardham Yatra From Delhi"', false)
+            ->assertSee('<input type="hidden" name="type" value="package">', false);
+
+        $this->get('/contact-us.html')
+            ->assertOk()
+            ->assertSee('Send us a message')
+            ->assertDontSee('id="contact-form-tour"', false);
+    }
+
     public function test_non_production_copies_are_never_indexable(): void
     {
         config(['seo.allow_indexing' => false]);
